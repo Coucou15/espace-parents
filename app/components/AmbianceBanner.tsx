@@ -8,6 +8,9 @@ export const SLOTS_AMBIANCE = [
   { id: "menu", label: "Menu cantine" },
   { id: "contact", label: "Nous contacter" },
   { id: "inscription", label: "Inscription" },
+  { id: "rendez-vous", label: "Rendez-vous" },
+  { id: "emploi-du-temps", label: "Emploi du temps" },
+  { id: "evaluations", label: "Évaluations" },
 ] as const;
 
 export type SlotAmbiance = (typeof SLOTS_AMBIANCE)[number]["id"];

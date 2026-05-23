@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AmbianceBanner } from "../../components/AmbianceBanner";
 import { AppHeader } from "../../components/AppHeader";
 import { AppShell } from "../../components/AppShell";
 import { AuthGuard } from "../../components/AuthGuard";
@@ -72,6 +73,7 @@ function Contenu({ enfants }: { enfants: EnfantInscrit[] }) {
         }
       />
       <AppShell>
+        <AmbianceBanner slot="emploi-du-temps" />
         <div className="px-5 py-4 space-y-4">
           {enfants.length > 1 ? (
             <div className="flex gap-1.5 overflow-x-auto pb-1">

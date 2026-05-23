@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AmbianceBanner } from "../../components/AmbianceBanner";
 import { AppHeader } from "../../components/AppHeader";
 import { AppShell } from "../../components/AppShell";
 import { AuthGuard } from "../../components/AuthGuard";
@@ -40,6 +41,7 @@ export default function EvaluationsPage() {
         <>
           <AppHeader title="Évaluations" subtitle={bulletin.trimestre} />
           <AppShell>
+            <AmbianceBanner slot="evaluations" />
             <div className="px-5 py-4 space-y-4">
               {bulletins.length > 1 ? (
                 <div className="flex gap-2">

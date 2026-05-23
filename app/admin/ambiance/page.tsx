@@ -17,6 +17,12 @@ const SLOT_HINTS: Record<SlotAmbiance, string> = {
   contact: "Bandeau de la page « Nous contacter ». Photo de la cour ou du bâtiment.",
   inscription:
     "Visible sur le formulaire d'inscription. Photo accueillante pour rassurer les nouveaux parents.",
+  "rendez-vous":
+    "Bandeau de la page rendez-vous. Suggérez une photo d'enseignant en interaction avec un élève.",
+  "emploi-du-temps":
+    "Bandeau de la page emploi du temps. Photo de classe ou d'une salle d'étude.",
+  evaluations:
+    "Bandeau de la page évaluations. Photo d'élèves en train d'écrire / réussir.",
 };
 
 export default function AmbianceAdmin() {

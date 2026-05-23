@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AmbianceBanner } from "../../components/AmbianceBanner";
 import { AppHeader } from "../../components/AppHeader";
 import { AppShell } from "../../components/AppShell";
 import { AuthGuard } from "../../components/AuthGuard";
@@ -113,6 +114,7 @@ function Contenu({ enfants }: { enfants: EnfantInscrit[] }) {
     <>
       <AppHeader title="Rendez-vous" subtitle="Avec les enseignants" />
       <AppShell>
+        <AmbianceBanner slot="rendez-vous" />
         <div className="px-5 py-4 space-y-5">
           {info ? (
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
