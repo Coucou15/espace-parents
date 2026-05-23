@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AmbianceBanner } from "../../components/AmbianceBanner";
 import { AppHeader } from "../../components/AppHeader";
 import { AppShell } from "../../components/AppShell";
 import { AuthGuard } from "../../components/AuthGuard";
@@ -26,6 +27,7 @@ export default function MenuPage() {
         <>
           <AppHeader title="Menu de la cantine" subtitle="Mise à jour chaque lundi" />
           <AppShell>
+            <AmbianceBanner slot="menu" />
             <div className="px-5 py-4">
               <div className="mb-4 grid grid-cols-2 rounded-lg bg-[var(--surface-muted)] p-1 text-xs font-semibold">
                 <button

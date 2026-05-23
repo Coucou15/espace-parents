@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AmbianceBanner } from "../../components/AmbianceBanner";
 import { Logo } from "../../components/Logo";
 import { login } from "../../lib/auth";
 
@@ -31,7 +32,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col px-6 pt-12 pb-8">
+    <div className="flex flex-1 flex-col">
+      <AmbianceBanner slot="login" variant="compact" />
+      <div className="flex flex-1 flex-col px-6 pt-10 pb-8">
       <div className="flex flex-col items-center gap-3 mb-8">
         <Logo size={72} />
         <div className="text-center">
@@ -109,6 +112,7 @@ export default function LoginPage() {
           </p>
         </div>
       ) : null}
+      </div>
     </div>
   );
 }

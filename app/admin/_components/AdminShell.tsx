@@ -28,6 +28,7 @@ const navItems = [
   { href: "/admin/evaluations", label: "Évaluations", icone: "📝" },
   { href: "/admin/menu", label: "Menu cantine", icone: "🍽️" },
   { href: "/admin/galerie", label: "Galerie photos", icone: "📸" },
+  { href: "/admin/ambiance", label: "Photos d'ambiance", icone: "🖼️" },
   { href: "/admin/reglement", label: "Règlement", icone: "📘" },
   { href: "/admin/messages", label: "Messages reçus", icone: "✉️" },
 ];

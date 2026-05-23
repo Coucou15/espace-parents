@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { AmbianceBanner } from "../../components/AmbianceBanner";
 import { Logo } from "../../components/Logo";
 import {
   SECTIONS,
@@ -123,7 +124,9 @@ export default function InscriptionPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col px-6 pt-10 pb-8">
+    <div className="flex flex-1 flex-col">
+      <AmbianceBanner slot="inscription" variant="compact" />
+      <div className="flex flex-1 flex-col px-6 pt-8 pb-8">
       <div className="flex flex-col items-center gap-3 mb-6">
         <Logo size={56} />
         <h1 className="text-lg font-semibold text-[var(--brand-primary-dark)]">
@@ -258,6 +261,7 @@ export default function InscriptionPage() {
           </Link>
         </form>
       )}
+      </div>
     </div>
   );
 }

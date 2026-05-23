@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AmbianceBanner } from "../../components/AmbianceBanner";
 import { AppHeader } from "../../components/AppHeader";
 import { AppShell } from "../../components/AppShell";
 import { AuthGuard } from "../../components/AuthGuard";
@@ -15,6 +16,7 @@ export default function ContactPage() {
         <>
           <AppHeader title="Nous contacter" subtitle="Secrétariat de l'école" />
           <AppShell>
+            <AmbianceBanner slot="contact" />
             <div className="px-5 py-4 space-y-5">
               <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-sm">
                 <h2 className="mb-3 text-sm font-semibold text-[var(--brand-primary-dark)]">

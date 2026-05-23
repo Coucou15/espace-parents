@@ -1,5 +1,6 @@
 "use client";
 
+import { AmbianceBanner } from "../components/AmbianceBanner";
 import { AppHeader } from "../components/AppHeader";
 import { AppShell } from "../components/AppShell";
 import { AuthGuard } from "../components/AuthGuard";
@@ -28,6 +29,7 @@ export default function AccueilPage() {
             subtitle="Voici les dernières actualités de l'école"
           />
           <AppShell>
+            <AmbianceBanner slot="accueil" />
             <div className="px-5 py-4">
               <ModuleGrid />
             </div>
