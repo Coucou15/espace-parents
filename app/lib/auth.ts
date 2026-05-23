@@ -3,6 +3,7 @@
 import type { PalierId, SectionId } from "./mockData";
 
 export type EnfantInscrit = {
+  id?: string; // présent quand renvoyé par /api/auth/me ; absent dans les contextes mock
   prenom: string;
   nom: string;
   palierId: PalierId;

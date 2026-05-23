@@ -44,11 +44,38 @@ model User {
   role            String   // "parent" | "admin-ecole" | "super-admin" | "enseignant" | "cantine"
   telephone       String?
   codeAcces       String?  // 6 chiffres, pour les parents uniquement
+  matiere         String?  // pour les enseignants (ex: "Mathématiques")
   statut          String   @default("actif") // "actif" | "suspendu"
   createdAt       DateTime @default(now())
   enfants         Enfant[]
   sessions        Session[]
   resetTokens     PasswordResetToken[]
+}
+
+// Créneaux de disponibilité d'un enseignant pour les rendez-vous parents.
+// Le créneau peut être réservé par un parent ; quand pris=true, rdvId pointe
+// vers le RendezVous correspondant.
+model CreneauDisponible {
+  id           String   @id @default(cuid())
+  enseignantId String
+  dateHeure    DateTime
+  duree        Int      @default(15) // minutes
+  pris         Boolean  @default(false)
+  rdvId        String?  // si réservé, ID du RendezVous
+}
+
+// Rendez-vous pris par un parent avec un enseignant.
+model RendezVous {
+  id           String   @id @default(cuid())
+  parentId     String
+  enseignantId String
+  enfantId     String?  // optionnel : à quel enfant le RDV concerne
+  creneauId    String?  // créneau d'origine, pour le libérer en cas d'annulation
+  dateHeure    DateTime
+  duree        Int      @default(15)
+  motif        String?
+  statut       String   @default("confirme") // "confirme" | "annule"
+  createdAt    DateTime @default(now())
 }
 
 // Enfants rattachés à un parent.

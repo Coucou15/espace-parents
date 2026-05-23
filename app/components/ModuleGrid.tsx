@@ -4,6 +4,7 @@ const modules = [
   { href: "/menu", icone: "🍽️", label: "Menu" },
   { href: "/emploi-du-temps", icone: "📅", label: "Emploi du temps" },
   { href: "/evaluations", icone: "📝", label: "Évaluations" },
+  { href: "/rendez-vous", icone: "🗓️", label: "Rendez-vous" },
   { href: "/galerie", icone: "📸", label: "Galerie" },
   { href: "/reglement", icone: "📘", label: "Règlement" },
   { href: "/contact", icone: "✉️", label: "Contact" },

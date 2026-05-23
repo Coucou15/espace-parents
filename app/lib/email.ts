@@ -130,6 +130,100 @@ Conservez ce code, il vous sera demandé lors de votre première connexion.
   return { sujet, html, texte };
 }
 
+function formaterDateHeure(iso: string | Date): string {
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  return d.toLocaleString("fr-FR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function templateRdvConfirmation(opts: {
+  destinataire: "parent" | "enseignant";
+  prenomDestinataire: string;
+  prenomAutrePartie: string;
+  nomAutrePartie: string;
+  matiere?: string | null;
+  enfantPrenom?: string | null;
+  dateHeure: string;
+  motif?: string | null;
+}): { sujet: string; html: string; texte: string } {
+  const estParent = opts.destinataire === "parent";
+  const autrePartie = `${opts.prenomAutrePartie} ${opts.nomAutrePartie}`;
+  const sujet = estParent
+    ? `Rendez-vous confirmé avec ${autrePartie}`
+    : `Nouveau rendez-vous avec ${autrePartie}`;
+  const intro = estParent
+    ? `Votre rendez-vous avec <strong>${autrePartie}</strong>${
+        opts.matiere ? ` (${opts.matiere})` : ""
+      } est confirmé.`
+    : `Un parent vient de réserver un rendez-vous avec vous.`;
+
+  const html = layout(
+    sujet,
+    `
+      <p style="margin:0 0 16px 0;font-size:15px;">Bonjour ${opts.prenomDestinataire},</p>
+      <p style="margin:0 0 16px 0;font-size:14px;line-height:1.6;">${intro}</p>
+      <div style="background:#e8f1ec;border-left:4px solid #1b5e3f;padding:16px;margin:16px 0;border-radius:6px;">
+        <p style="margin:0 0 6px 0;font-size:13px;color:#5b6e64;">${estParent ? "Avec" : "Parent"}</p>
+        <p style="margin:0 0 12px 0;font-size:15px;font-weight:600;">${autrePartie}${opts.matiere ? ` · ${opts.matiere}` : ""}</p>
+        <p style="margin:0 0 6px 0;font-size:13px;color:#5b6e64;">Quand</p>
+        <p style="margin:0 0 12px 0;font-size:15px;font-weight:600;">${formaterDateHeure(opts.dateHeure)}</p>
+        ${opts.enfantPrenom ? `<p style="margin:0 0 6px 0;font-size:13px;color:#5b6e64;">Concerne</p><p style="margin:0 0 12px 0;font-size:15px;font-weight:600;">${opts.enfantPrenom}</p>` : ""}
+        ${opts.motif ? `<p style="margin:0 0 6px 0;font-size:13px;color:#5b6e64;">Motif</p><p style="margin:0;font-size:14px;font-style:italic;">«&nbsp;${opts.motif}&nbsp;»</p>` : ""}
+      </div>
+      <p style="margin:24px 0 0 0;font-size:12px;color:#5b6e64;">
+        Pour annuler ou modifier ce rendez-vous, ${estParent ? "rendez-vous dans la rubrique « Rendez-vous » de l'application" : "consultez votre espace de gestion des rendez-vous"}.
+      </p>
+    `
+  );
+  const texte = `Bonjour ${opts.prenomDestinataire},
+
+${estParent
+    ? `Votre rendez-vous avec ${autrePartie}${opts.matiere ? ` (${opts.matiere})` : ""} est confirmé.`
+    : `Un parent (${autrePartie}) vient de réserver un rendez-vous avec vous.`}
+
+Date : ${formaterDateHeure(opts.dateHeure)}
+${opts.enfantPrenom ? `Enfant concerné : ${opts.enfantPrenom}\n` : ""}${opts.motif ? `Motif : ${opts.motif}\n` : ""}
+— École Les Racines du Future`;
+
+  return { sujet, html, texte };
+}
+
+export function templateRdvAnnulation(opts: {
+  destinataire: "parent" | "enseignant";
+  prenomDestinataire: string;
+  prenomAutrePartie: string;
+  nomAutrePartie: string;
+  dateHeure: string;
+}): { sujet: string; html: string; texte: string } {
+  const autrePartie = `${opts.prenomAutrePartie} ${opts.nomAutrePartie}`;
+  const sujet = `Rendez-vous annulé`;
+  const html = layout(
+    sujet,
+    `
+      <p style="margin:0 0 16px 0;font-size:15px;">Bonjour ${opts.prenomDestinataire},</p>
+      <p style="margin:0 0 16px 0;font-size:14px;line-height:1.6;">
+        Le rendez-vous prévu avec <strong>${autrePartie}</strong> le
+        <strong>${formaterDateHeure(opts.dateHeure)}</strong> a été annulé.
+      </p>
+      <p style="margin:16px 0 0 0;font-size:13px;color:#5b6e64;">
+        Vous pouvez prendre un nouveau rendez-vous depuis l'application.
+      </p>
+    `
+  );
+  const texte = `Bonjour ${opts.prenomDestinataire},
+
+Le rendez-vous prévu avec ${autrePartie} le ${formaterDateHeure(opts.dateHeure)} a été annulé.
+
+— École Les Racines du Future`;
+  return { sujet, html, texte };
+}
+
 export function templateResetPassword(prenom: string, lien: string): {
   sujet: string;
   html: string;

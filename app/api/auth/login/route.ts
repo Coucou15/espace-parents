@@ -61,6 +61,7 @@ export async function POST(req: Request) {
       role: user.role,
       telephone: user.telephone,
       enfants: user.enfants.map((e) => ({
+        id: e.id,
         prenom: e.prenom,
         nom: e.nom,
         palierId: e.palierId,

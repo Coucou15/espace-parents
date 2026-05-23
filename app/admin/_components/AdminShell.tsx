@@ -20,7 +20,9 @@ export type AdminSession = Compte;
 const navItems = [
   { href: "/admin/dashboard", label: "Tableau de bord", icone: "📊" },
   { href: "/admin/demandes", label: "Demandes d'inscription", icone: "📥" },
+  { href: "/admin/utilisateurs", label: "Utilisateurs", icone: "👥" },
   { href: "/admin/parents", label: "Comptes parents", icone: "👨‍👩‍👧" },
+  { href: "/admin/rendez-vous", label: "Rendez-vous", icone: "🗓️" },
   { href: "/admin/annonces", label: "Annonces", icone: "📢" },
   { href: "/admin/emploi-du-temps", label: "Emplois du temps", icone: "📅" },
   { href: "/admin/evaluations", label: "Évaluations", icone: "📝" },

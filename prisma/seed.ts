@@ -74,6 +74,28 @@ async function seedUsers() {
       codeAcces: null,
       enfants: [],
     },
+    {
+      email: "karim.belkadi@racinesdufutur.dz",
+      prenom: "Karim",
+      nom: "Belkadi",
+      motDePasse: "Prof2026!",
+      role: "enseignant",
+      telephone: null,
+      codeAcces: null,
+      matiere: "Mathématiques",
+      enfants: [],
+    },
+    {
+      email: "leila.zerouali@racinesdufutur.dz",
+      prenom: "Leila",
+      nom: "Zerouali",
+      motDePasse: "Prof2026!",
+      role: "enseignant",
+      telephone: null,
+      codeAcces: null,
+      matiere: "Français",
+      enfants: [],
+    },
   ];
 
   for (const u of utilisateurs) {
@@ -88,6 +110,7 @@ async function seedUsers() {
         role: u.role,
         telephone: u.telephone,
         codeAcces: u.codeAcces,
+        matiere: ("matiere" in u ? (u as { matiere?: string }).matiere : null) ?? null,
         enfants: { create: u.enfants },
       },
       update: {
@@ -97,6 +120,7 @@ async function seedUsers() {
         role: u.role,
         telephone: u.telephone,
         codeAcces: u.codeAcces,
+        matiere: ("matiere" in u ? (u as { matiere?: string }).matiere : null) ?? null,
       },
     });
     console.log(`  ✓ ${u.email} (${u.role})`);
