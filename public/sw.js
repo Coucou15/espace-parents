@@ -11,6 +11,14 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Handler fetch minimal : laisse passer toutes les requêtes telles quelles.
+// Sans ce handler, Chrome refuse d'afficher la bannière "Installer l'app"
+// car il considère l'app comme non-PWA.
+self.addEventListener("fetch", (event) => {
+  // Pas-through : pas de mise en cache pour l'instant, on reste léger.
+  // (Une stratégie offline-first viendrait ici plus tard si besoin.)
+});
+
 // Réception d'une notification push envoyée par le serveur.
 self.addEventListener("push", (event) => {
   let payload = { titre: "Espace Parents", texte: "Nouvelle notification", url: "/" };
