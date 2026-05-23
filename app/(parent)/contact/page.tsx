@@ -5,10 +5,14 @@ import { AmbianceBanner } from "../../components/AmbianceBanner";
 import { AppHeader } from "../../components/AppHeader";
 import { AppShell } from "../../components/AppShell";
 import { AuthGuard } from "../../components/AuthGuard";
-import { ecole } from "../../lib/mockData";
+import { ecole as ecoleParDefaut } from "../../lib/mockData";
+import { useSharedStore } from "../../lib/store";
+
+type InfosEcole = typeof ecoleParDefaut;
 
 export default function ContactPage() {
   const [envoye, setEnvoye] = useState(false);
+  const [ecole] = useSharedStore<InfosEcole>("ecole", ecoleParDefaut);
 
   return (
     <AuthGuard>
@@ -28,6 +32,30 @@ export default function ContactPage() {
                   <InfoRow icone="✉️" label="E-mail" valeur={ecole.email} href={`mailto:${ecole.email}`} />
                   <InfoRow icone="🕒" label="Horaires" valeur={ecole.horaires} />
                 </ul>
+                {ecole.reseauxSociaux?.facebook || ecole.reseauxSociaux?.instagram ? (
+                  <div className="mt-3 flex gap-3 border-t border-[var(--border)] pt-3">
+                    {ecole.reseauxSociaux.facebook ? (
+                      <a
+                        href={ecole.reseauxSociaux.facebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-[var(--brand-secondary)] hover:underline"
+                      >
+                        Facebook ↗
+                      </a>
+                    ) : null}
+                    {ecole.reseauxSociaux.instagram ? (
+                      <a
+                        href={ecole.reseauxSociaux.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-[var(--brand-secondary)] hover:underline"
+                      >
+                        Instagram ↗
+                      </a>
+                    ) : null}
+                  </div>
+                ) : null}
               </section>
 
               <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-sm">

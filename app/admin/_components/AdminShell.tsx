@@ -30,6 +30,7 @@ const navItems = [
   { href: "/admin/galerie", label: "Galerie photos", icone: "📸" },
   { href: "/admin/ambiance", label: "Photos d'ambiance", icone: "🖼️" },
   { href: "/admin/reglement", label: "Règlement", icone: "📘" },
+  { href: "/admin/ecole", label: "Coordonnées école", icone: "🏫" },
   { href: "/admin/messages", label: "Messages reçus", icone: "✉️" },
 ];
 
