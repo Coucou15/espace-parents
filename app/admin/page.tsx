@@ -6,11 +6,12 @@ import Link from "next/link";
 import { login } from "../lib/auth";
 
 const ROLES_ADMIN = ["admin-ecole", "super-admin", "enseignant", "cantine"];
+const EST_PROD = process.env.NODE_ENV === "production";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("directeur@racinesdufutur.dz");
-  const [motDePasse, setMotDePasse] = useState("Admin2026!");
+  const [email, setEmail] = useState(EST_PROD ? "" : "directeur@racinesdufutur.dz");
+  const [motDePasse, setMotDePasse] = useState(EST_PROD ? "" : "Admin2026!");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
 
@@ -95,13 +96,16 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 rounded-lg bg-[var(--brand-soft)] p-3 text-[11px] text-[var(--brand-primary-dark)]">
-          <strong>Comptes démo :</strong>
-          <ul className="mt-1 space-y-0.5">
-            <li>· directeur@racinesdufutur.dz / Admin2026! (super-admin)</li>
-            <li>· secretariat@racinesdufutur.dz / Secret2026! (admin école)</li>
-          </ul>
-        </div>
+        {!EST_PROD ? (
+          <div className="mt-6 rounded-lg bg-[var(--brand-soft)] p-3 text-[11px] text-[var(--brand-primary-dark)]">
+            <strong>Comptes démo :</strong>
+            <ul className="mt-1 space-y-0.5">
+              <li>· directeur@racinesdufutur.dz / Admin2026! (super-admin)</li>
+              <li>· secretariat@racinesdufutur.dz / Secret2026! (admin école)</li>
+              <li>· karim.belkadi@racinesdufutur.dz / Prof2026! (enseignant)</li>
+            </ul>
+          </div>
+        ) : null}
 
         <div className="mt-4 text-center">
           <Link href="/" className="text-[11px] text-[var(--text-muted)] hover:underline">

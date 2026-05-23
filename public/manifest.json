@@ -1,0 +1,21 @@
+{
+  "name": "Espace Parents — Les Racines du Future",
+  "short_name": "Espace Parents",
+  "description": "Application des parents d'élèves de l'école Les Racines du Future",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7faf8",
+  "theme_color": "#1b5e3f",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["education"]
+}

@@ -6,10 +6,12 @@ import Link from "next/link";
 import { Logo } from "../../components/Logo";
 import { login } from "../../lib/auth";
 
+const EST_PROD = process.env.NODE_ENV === "production";
+
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("demo@parent.fr");
-  const [motDePasse, setMotDePasse] = useState("Demo2026!");
+  const [email, setEmail] = useState(EST_PROD ? "" : "demo@parent.fr");
+  const [motDePasse, setMotDePasse] = useState(EST_PROD ? "" : "Demo2026!");
   const [erreur, setErreur] = useState<string | null>(null);
 
   const [enCours, setEnCours] = useState(false);
@@ -99,12 +101,14 @@ export default function LoginPage() {
         </div>
       </form>
 
-      <div className="mt-auto pt-8">
-        <p className="rounded-lg bg-[var(--brand-soft)] px-3 py-2 text-xs text-[var(--brand-primary-dark)]">
-          <strong>Démo :</strong> les identifiants sont pré-remplis. Cliquez sur « Se
-          connecter » pour explorer l&apos;application.
-        </p>
-      </div>
+      {!EST_PROD ? (
+        <div className="mt-auto pt-8">
+          <p className="rounded-lg bg-[var(--brand-soft)] px-3 py-2 text-xs text-[var(--brand-primary-dark)]">
+            <strong>Démo :</strong> les identifiants sont pré-remplis. Cliquez sur « Se
+            connecter » pour explorer l&apos;application.
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
