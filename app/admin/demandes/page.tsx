@@ -1,60 +1,120 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AdminShell } from "../_components/AdminShell";
-import {
-  demandesInitiales,
-  genererCodeAcces,
-  type DemandeInscription,
-} from "../_lib/adminMockData";
-import { formatClasse } from "../../lib/mockData";
+import { formatClasse, type PalierId, type SectionId } from "../../lib/mockData";
 
-type DemandeAvecCode = DemandeInscription & { code?: string };
+type Demande = {
+  id: string;
+  parentPrenom: string;
+  parentNom: string;
+  email: string;
+  telephone: string | null;
+  date: string;
+  enfants: Array<{
+    prenom: string;
+    nom: string;
+    palierId: PalierId;
+    niveauId: string;
+    section: SectionId;
+  }>;
+};
 
 export default function DemandesPage() {
-  const [demandes, setDemandes] = useState<DemandeAvecCode[]>(demandesInitiales);
-  const [validee, setValidee] = useState<{ id: string; code: string } | null>(null);
+  const [demandes, setDemandes] = useState<Demande[]>([]);
+  const [chargement, setChargement] = useState(true);
+  const [validee, setValidee] = useState<{ email: string; code: string } | null>(null);
+  const [erreur, setErreur] = useState<string | null>(null);
 
-  function valider(id: string) {
-    const code = genererCodeAcces();
-    setValidee({ id, code });
-    setTimeout(() => {
-      setDemandes((curr) => curr.filter((d) => d.id !== id));
-      setValidee(null);
-    }, 3000);
+  async function rafraichir() {
+    try {
+      const res = await fetch("/api/demandes", { cache: "no-store" });
+      if (!res.ok) {
+        setErreur(`Erreur de chargement (HTTP ${res.status})`);
+        return;
+      }
+      const data = await res.json();
+      setDemandes(data.demandes ?? []);
+      setErreur(null);
+    } finally {
+      setChargement(false);
+    }
   }
 
-  function refuser(id: string) {
-    if (confirm("Confirmer le refus de cette demande ?")) {
-      setDemandes((curr) => curr.filter((d) => d.id !== id));
+  useEffect(() => {
+    rafraichir();
+  }, []);
+
+  async function valider(id: string) {
+    setErreur(null);
+    const res = await fetch(`/api/demandes/${id}/valider`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) {
+      setErreur(data.error ?? "Échec de la validation");
+      return;
     }
+    setValidee({ email: data.user.email, code: data.codeAcces });
+    await rafraichir();
+    setTimeout(() => setValidee(null), 8000);
+  }
+
+  async function refuser(id: string) {
+    if (!confirm("Confirmer le refus de cette demande ?")) return;
+    setErreur(null);
+    const res = await fetch(`/api/demandes/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      setErreur("Échec du refus");
+      return;
+    }
+    await rafraichir();
   }
 
   return (
     <AdminShell>
       {() => (
         <div className="space-y-5">
-          <header>
-            <h1 className="text-xl font-bold text-[var(--brand-primary-dark)]">
-              Demandes d&apos;inscription
-            </h1>
-            <p className="text-sm text-[var(--text-muted)]">
-              {demandes.length} demande{demandes.length > 1 ? "s" : ""} en attente de
-              validation.
-            </p>
+          <header className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-xl font-bold text-[var(--brand-primary-dark)]">
+                Demandes d&apos;inscription
+              </h1>
+              <p className="text-sm text-[var(--text-muted)]">
+                {chargement
+                  ? "Chargement…"
+                  : `${demandes.length} demande${demandes.length > 1 ? "s" : ""} en attente de validation.`}
+              </p>
+            </div>
+            <button
+              onClick={rafraichir}
+              className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-xs font-semibold hover:bg-[var(--surface-muted)]"
+            >
+              ↻ Rafraîchir
+            </button>
           </header>
+
+          {erreur ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              ⚠ {erreur}
+            </div>
+          ) : null}
 
           {validee ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
-              <p className="font-semibold mb-1">✓ Demande validée</p>
+              <p className="font-semibold mb-1">✓ Compte créé pour {validee.email}</p>
               <p className="text-xs">
-                Le code d&apos;accès <strong className="font-mono text-base">{validee.code}</strong>{" "}
-                a été envoyé au parent par e-mail et SMS.
+                Code d&apos;accès :{" "}
+                <strong className="font-mono text-base bg-white px-2 py-0.5 rounded border border-emerald-200">
+                  {validee.code}
+                </strong>
+              </p>
+              <p className="text-xs mt-2">
+                Communiquez ce code au parent (par e-mail, SMS ou téléphone) — il en
+                aura besoin à sa première connexion.
               </p>
             </div>
           ) : null}
 
-          {demandes.length === 0 ? (
+          {!chargement && demandes.length === 0 ? (
             <div className="rounded-xl border border-dashed border-[var(--border)] bg-white p-10 text-center text-sm text-[var(--text-muted)]">
               Aucune demande en attente. 🎉
             </div>
@@ -76,7 +136,8 @@ export default function DemandesPage() {
                         </span>
                       </div>
                       <div className="mt-1 text-xs text-[var(--text-muted)]">
-                        {d.email} · {d.telephone}
+                        {d.email}
+                        {d.telephone ? ` · ${d.telephone}` : ""}
                       </div>
 
                       <div className="mt-3">
@@ -109,7 +170,7 @@ export default function DemandesPage() {
                         onClick={() => valider(d.id)}
                         className="rounded-lg bg-[var(--brand-primary)] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--brand-primary-dark)]"
                       >
-                        Valider et envoyer le code
+                        Valider et créer le compte
                       </button>
                     </div>
                   </div>

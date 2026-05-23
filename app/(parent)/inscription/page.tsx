@@ -25,30 +25,101 @@ function nouvelEnfant(): EnfantForm {
   return { prenom: "", nom: "", palierId: "", niveauId: "", section: "A" };
 }
 
-export default function InscriptionPage() {
-  const [envoye, setEnvoye] = useState(false);
-  const [enfants, setEnfants] = useState<EnfantForm[]>([nouvelEnfant()]);
+type Form = {
+  parentPrenom: string;
+  parentNom: string;
+  email: string;
+  telephone: string;
+  motDePasse: string;
+  cgu: boolean;
+  enfants: EnfantForm[];
+};
 
-  function modifier(index: number, patch: Partial<EnfantForm>) {
-    setEnfants((curr) => {
-      const next = [...curr];
-      const e = { ...next[index], ...patch };
-      // Si le palier change, on réinitialise niveau et section
-      if (patch.palierId !== undefined && patch.palierId !== curr[index].palierId) {
+const FORM_INITIAL: Form = {
+  parentPrenom: "",
+  parentNom: "",
+  email: "",
+  telephone: "",
+  motDePasse: "",
+  cgu: false,
+  enfants: [nouvelEnfant()],
+};
+
+export default function InscriptionPage() {
+  const [form, setForm] = useState<Form>(FORM_INITIAL);
+  const [envoye, setEnvoye] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
+  const [enCours, setEnCours] = useState(false);
+
+  function modifierEnfant(index: number, patch: Partial<EnfantForm>) {
+    setForm((curr) => {
+      const enfants = [...curr.enfants];
+      const e = { ...enfants[index], ...patch };
+      if (patch.palierId !== undefined && patch.palierId !== curr.enfants[index].palierId) {
         e.niveauId = "";
         e.section = "A";
       }
-      next[index] = e;
-      return next;
+      enfants[index] = e;
+      return { ...curr, enfants };
     });
   }
 
   function ajouterEnfant() {
-    setEnfants((curr) => [...curr, nouvelEnfant()]);
+    setForm((curr) => ({ ...curr, enfants: [...curr.enfants, nouvelEnfant()] }));
   }
 
   function retirerEnfant(index: number) {
-    setEnfants((curr) => curr.filter((_, i) => i !== index));
+    setForm((curr) => ({
+      ...curr,
+      enfants: curr.enfants.filter((_, i) => i !== index),
+    }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErreur(null);
+
+    // Validation côté client : palier + niveau choisis pour chaque enfant
+    for (const enfant of form.enfants) {
+      if (!enfant.palierId || !enfant.niveauId) {
+        setErreur("Sélectionnez le palier et le niveau pour chaque enfant.");
+        return;
+      }
+    }
+
+    setEnCours(true);
+    try {
+      const res = await fetch("/api/demandes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          parentPrenom: form.parentPrenom,
+          parentNom: form.parentNom,
+          email: form.email,
+          telephone: form.telephone,
+          motDePasse: form.motDePasse,
+          enfants: form.enfants.map((e) => ({
+            prenom: e.prenom,
+            nom: e.nom,
+            palierId: e.palierId,
+            niveauId: e.niveauId,
+            section: e.section,
+          })),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setErreur(data.error ?? "Une erreur est survenue.");
+        return;
+      }
+
+      setEnvoye(true);
+    } catch (err) {
+      setErreur(err instanceof Error ? err.message : "Erreur réseau");
+    } finally {
+      setEnCours(false);
+    }
   }
 
   return (
@@ -67,12 +138,12 @@ export default function InscriptionPage() {
           </p>
           <p className="text-[var(--text-muted)] mb-2">
             Votre demande est en attente de validation par l&apos;administration de
-            l&apos;école. Vous recevrez un code d&apos;accès par e-mail ou SMS dès que
-            votre compte sera approuvé.
+            l&apos;école. Vous recevrez un code d&apos;accès dès que votre compte sera
+            approuvé.
           </p>
           <p className="text-xs text-[var(--text-muted)] mb-3">
-            {enfants.length} enfant(s) déclaré(s) :{" "}
-            {enfants
+            {form.enfants.length} enfant(s) déclaré(s) :{" "}
+            {form.enfants
               .map((e) =>
                 e.palierId && e.niveauId
                   ? `${e.prenom} (${formatClasse(e.palierId, e.niveauId, e.section)})`
@@ -88,25 +159,43 @@ export default function InscriptionPage() {
           </Link>
         </div>
       ) : (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setEnvoye(true);
-          }}
-          className="space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <section className="space-y-3">
             <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
               Vos informations
             </h2>
-            <Field label="Prénom du parent" placeholder="Amina" />
-            <Field label="Nom du parent" placeholder="Benali" />
-            <Field label="E-mail" type="email" placeholder="parent@exemple.fr" />
-            <Field label="Téléphone" placeholder="+213 6 ..." />
+            <Field
+              label="Prénom du parent"
+              placeholder="Amina"
+              value={form.parentPrenom}
+              onChange={(v) => setForm((c) => ({ ...c, parentPrenom: v }))}
+            />
+            <Field
+              label="Nom du parent"
+              placeholder="Benali"
+              value={form.parentNom}
+              onChange={(v) => setForm((c) => ({ ...c, parentNom: v }))}
+            />
+            <Field
+              label="E-mail"
+              type="email"
+              placeholder="parent@exemple.fr"
+              value={form.email}
+              onChange={(v) => setForm((c) => ({ ...c, email: v }))}
+            />
+            <Field
+              label="Téléphone"
+              placeholder="+213 6 ..."
+              value={form.telephone}
+              onChange={(v) => setForm((c) => ({ ...c, telephone: v }))}
+              optional
+            />
             <Field
               label="Mot de passe"
               type="password"
-              hint="8 caractères min., 1 majuscule, 1 chiffre, 1 spécial"
+              hint="8 caractères minimum"
+              value={form.motDePasse}
+              onChange={(v) => setForm((c) => ({ ...c, motDePasse: v }))}
             />
           </section>
 
@@ -115,13 +204,13 @@ export default function InscriptionPage() {
               Vos enfants
             </h2>
 
-            {enfants.map((enfant, i) => (
+            {form.enfants.map((enfant, i) => (
               <EnfantCard
                 key={i}
                 index={i}
                 enfant={enfant}
-                onChange={(patch) => modifier(i, patch)}
-                onRemove={enfants.length > 1 ? () => retirerEnfant(i) : undefined}
+                onChange={(patch) => modifierEnfant(i, patch)}
+                onRemove={form.enfants.length > 1 ? () => retirerEnfant(i) : undefined}
               />
             ))}
 
@@ -135,18 +224,31 @@ export default function InscriptionPage() {
           </section>
 
           <label className="flex items-start gap-2 text-xs text-[var(--text-muted)]">
-            <input type="checkbox" required className="mt-0.5" />
+            <input
+              type="checkbox"
+              required
+              className="mt-0.5"
+              checked={form.cgu}
+              onChange={(e) => setForm((c) => ({ ...c, cgu: e.target.checked }))}
+            />
             <span>
               J&apos;accepte les conditions d&apos;utilisation et la politique de
               confidentialité.
             </span>
           </label>
 
+          {erreur ? (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              ⚠ {erreur}
+            </p>
+          ) : null}
+
           <button
             type="submit"
-            className="w-full rounded-lg bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--brand-primary-dark)]"
+            disabled={enCours}
+            className="w-full rounded-lg bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--brand-primary-dark)] disabled:opacity-50"
           >
-            Envoyer ma demande
+            {enCours ? "Envoi…" : "Envoyer ma demande"}
           </button>
           <Link
             href="/login"
@@ -268,23 +370,28 @@ function Field({
   hint,
   value,
   onChange,
+  optional = false,
 }: {
   label: string;
   type?: string;
   placeholder?: string;
   hint?: string;
-  value?: string;
-  onChange?: (v: string) => void;
+  value: string;
+  onChange: (v: string) => void;
+  optional?: boolean;
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1">{label}</label>
+      <label className="block text-xs font-medium mb-1">
+        {label}
+        {optional ? <span className="text-[var(--text-muted)]"> (facultatif)</span> : null}
+      </label>
       <input
         type={type}
-        required
+        required={!optional}
         placeholder={placeholder}
         value={value}
-        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--brand-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
       />
       {hint ? <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{hint}</p> : null}

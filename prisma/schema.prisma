@@ -71,3 +71,17 @@ model Session {
   expires   DateTime
   createdAt DateTime @default(now())
 }
+
+// Demande d'inscription en attente de validation par l'administration.
+// Le mot de passe est déjà haché à la soumission ; à la validation, on
+// transfère les données dans User et on supprime la demande.
+model DemandeInscription {
+  id             String   @id @default(cuid())
+  parentPrenom   String
+  parentNom      String
+  email          String   @unique
+  telephone      String?
+  motDePasseHash String
+  enfants        String   // JSON sérialisé : [{prenom, nom, palierId, niveauId, section}]
+  createdAt      DateTime @default(now())
+}
