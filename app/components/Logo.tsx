@@ -6,7 +6,7 @@ export function Logo({ size = 48, ring = true }: { size?: number; ring?: boolean
         ring ? "ring-2 ring-white/40 shadow-md" : ""
       }`}
       style={{ width: size, height: size }}
-      aria-label="Logo Les Racines du Futur"
+      aria-label="Logo Les Racines du Future"
     >
       <img
         src="/logo.jpg"

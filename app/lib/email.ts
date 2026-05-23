@@ -68,7 +68,7 @@ function layout(titre: string, contenu: string): string {
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
           <tr>
             <td style="background:#1b5e3f;padding:24px;text-align:center;color:#ffffff;">
-              <div style="font-size:11px;letter-spacing:2px;opacity:0.8;text-transform:uppercase;">Les Racines du Futur</div>
+              <div style="font-size:11px;letter-spacing:2px;opacity:0.8;text-transform:uppercase;">Les Racines du Future</div>
               <div style="font-size:18px;font-weight:700;margin-top:4px;">Espace Parents</div>
             </td>
           </tr>
@@ -79,7 +79,7 @@ function layout(titre: string, contenu: string): string {
           </tr>
           <tr>
             <td style="background:#f1f5f2;padding:16px 24px;text-align:center;font-size:11px;color:#5b6e64;">
-              École Les Racines du Futur · Cet e-mail vous a été envoyé suite à votre activité sur l'application Espace Parents.
+              École Les Racines du Future · Cet e-mail vous a été envoyé suite à votre activité sur l'application Espace Parents.
             </td>
           </tr>
         </table>
@@ -126,7 +126,7 @@ Votre code d'accès : ${code}
 
 Conservez ce code, il vous sera demandé lors de votre première connexion.
 
-— École Les Racines du Futur`;
+— École Les Racines du Future`;
   return { sujet, html, texte };
 }
 
@@ -168,6 +168,6 @@ ${lien}
 
 Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.
 
-— École Les Racines du Futur`;
+— École Les Racines du Future`;
   return { sujet, html, texte };
 }

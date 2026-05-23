@@ -37,7 +37,7 @@ export default function LoginPage() {
             Espace Parents
           </h1>
           <p className="text-sm text-[var(--text-muted)]">
-            Les Racines du Futur
+            Les Racines du Future
           </p>
           <p className="text-xs italic text-[var(--text-muted)] mt-1">
             « Plus proche de l&apos;école, à tout moment. »

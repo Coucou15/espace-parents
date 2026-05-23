@@ -8,8 +8,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Espace Parents — Les Racines du Futur",
-  description: "Application des parents d'élèves de l'école Les Racines du Futur",
+  title: "Espace Parents — Les Racines du Future",
+  description: "Application des parents d'élèves de l'école Les Racines du Future",
 };
 
 export const viewport: Viewport = {

@@ -1,6 +1,6 @@
-# Espace Parents — Les Racines du Futur
+# Espace Parents — Les Racines du Future
 
-Application web pour les parents d'élèves de l'école « Les Racines du Futur »,
+Application web pour les parents d'élèves de l'école « Les Racines du Future »,
 prototype répondant au cahier des charges de mai 2026.
 
 ## Stack technique

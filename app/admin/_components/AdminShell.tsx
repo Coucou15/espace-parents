@@ -98,7 +98,7 @@ export function AdminShell({ children }: { children: (session: AdminSession) => 
             ☰
           </button>
           <div className="hidden text-sm font-semibold text-[var(--brand-primary-dark)] lg:block">
-            Back-office · Les Racines du Futur
+            Back-office · Les Racines du Future
           </div>
           <div className="flex items-center gap-3 text-xs">
             <div className="text-right">
@@ -142,7 +142,7 @@ function SidebarContent({
           <img src="/logo.jpg" alt="" className="h-10 w-10 rounded-full bg-white object-contain" />
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-wider opacity-70">Back-office</div>
-            <div className="text-sm font-semibold truncate">Les Racines du Futur</div>
+            <div className="text-sm font-semibold truncate">Les Racines du Future</div>
           </div>
         </Link>
       </div>

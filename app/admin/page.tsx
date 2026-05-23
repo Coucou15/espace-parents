@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
               Back-office
             </div>
             <h1 className="text-lg font-bold text-[var(--brand-primary-dark)]">
-              Les Racines du Futur
+              Les Racines du Future
             </h1>
             <p className="text-xs text-[var(--text-muted)]">Espace administration</p>
           </div>

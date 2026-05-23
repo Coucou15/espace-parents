@@ -512,7 +512,7 @@ export const reglement: {
 };
 
 export const ecole = {
-  nom: "École Les Racines du Futur",
+  nom: "École Les Racines du Future",
   adresse: "12 avenue de l'Avenir, 75000 Ville",
   telephone: "+33 1 23 45 67 89",
   email: "contact@racinesdufutur.fr",

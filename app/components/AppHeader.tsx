@@ -6,7 +6,7 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle?: strin
       <div className="flex items-center gap-3">
         <Logo size={40} />
         <div className="flex-1 min-w-0">
-          <p className="text-xs opacity-80 truncate">Les Racines du Futur</p>
+          <p className="text-xs opacity-80 truncate">Les Racines du Future</p>
           <h1 className="text-lg font-semibold leading-tight truncate">{title}</h1>
           {subtitle ? (
             <p className="text-xs opacity-80 mt-0.5 truncate">{subtitle}</p>
