@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7faf8;
+  --foreground: #1a2e22;
+
+  --brand-primary: #1b5e3f;
+  --brand-primary-dark: #0f3f29;
+  --brand-secondary: #2563a8;
+  --brand-accent: #d49a3a;
+  --brand-soft: #e8f1ec;
+
+  --surface: #ffffff;
+  --surface-muted: #f1f5f2;
+  --border: #d8e3dc;
+  --text-muted: #5b6e64;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand: var(--brand-primary);
+  --color-brand-dark: var(--brand-primary-dark);
+  --color-secondary: var(--brand-secondary);
+  --color-accent: var(--brand-accent);
+  --color-soft: var(--brand-soft);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-muted: var(--text-muted);
+  --font-sans: var(--font-geist-sans);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+}

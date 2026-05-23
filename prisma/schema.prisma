@@ -1,0 +1,73 @@
+// Schéma Prisma pour l'application Espace Parents
+// Voir : https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Approche key/value : chaque ressource (annonces, menu, albums, etc.)
+// est stockée comme un objet JSON sérialisé sous une clé unique.
+// Permet de reprendre la même structure que useSharedStore sans
+// avoir à modéliser chaque entité finement (à faire en étape 2).
+model Store {
+  name      String   @id
+  value     String   // JSON sérialisé
+  updatedAt DateTime @updatedAt
+}
+
+// Abonnements Web Push : un par navigateur+utilisateur.
+// `endpoint` est unique et fourni par le service de push (Google/Mozilla).
+// `p256dh` et `auth` sont les clés permettant de chiffrer le payload.
+model PushSubscription {
+  id          String   @id @default(cuid())
+  endpoint    String   @unique
+  p256dh      String
+  auth        String
+  userEmail   String?  // pour cibler un parent précis (facultatif)
+  userAgent   String?
+  createdAt   DateTime @default(now())
+}
+
+// Utilisateurs : parents + personnels admin/enseignants/cantine.
+// Le rôle détermine les permissions.
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  prenom          String
+  nom             String
+  motDePasseHash  String   // bcrypt
+  role            String   // "parent" | "admin-ecole" | "super-admin" | "enseignant" | "cantine"
+  telephone       String?
+  codeAcces       String?  // 6 chiffres, pour les parents uniquement
+  statut          String   @default("actif") // "actif" | "suspendu"
+  createdAt       DateTime @default(now())
+  enfants         Enfant[]
+  sessions        Session[]
+}
+
+// Enfants rattachés à un parent.
+model Enfant {
+  id        String @id @default(cuid())
+  prenom    String
+  nom       String
+  palierId  String
+  niveauId  String
+  section   String
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Sessions : un token (= id) stocké dans un cookie HTTP-only.
+// Expirent automatiquement après 30 jours.
+model Session {
+  id        String   @id // identifiant aléatoire = valeur du cookie
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires   DateTime
+  createdAt DateTime @default(now())
+}
