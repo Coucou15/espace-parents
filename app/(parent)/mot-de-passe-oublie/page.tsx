@@ -1,29 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Logo } from "../../components/Logo";
 
 type Etape = "demande" | "envoye" | "nouveau" | "succes";
 
 export default function MotDePasseOubliePage() {
+  return (
+    <Suspense fallback={<Skeleton />}>
+      <Contenu />
+    </Suspense>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="flex flex-1 items-center justify-center text-sm text-[var(--text-muted)]">
+      Chargement…
+    </div>
+  );
+}
+
+function Contenu() {
+  const params = useSearchParams();
+  const tokenUrl = params.get("token");
+
   const [etape, setEtape] = useState<Etape>("demande");
   const [email, setEmail] = useState("");
   const [nouveau, setNouveau] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
+  const [enCours, setEnCours] = useState(false);
 
-  function envoyerDemande(e: React.FormEvent) {
+  // Si l'utilisateur arrive avec un token dans l'URL (lien d'e-mail),
+  // on saute directement à l'étape "nouveau mot de passe".
+  useEffect(() => {
+    if (tokenUrl) setEtape("nouveau");
+  }, [tokenUrl]);
+
+  async function envoyerDemande(e: React.FormEvent) {
     e.preventDefault();
     if (!email.includes("@")) {
       setErreur("Adresse e-mail invalide.");
       return;
     }
     setErreur(null);
-    setEtape("envoye");
+    setEnCours(true);
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErreur(data.error ?? "Erreur lors de l'envoi");
+        return;
+      }
+      setEtape("envoye");
+    } catch (err) {
+      setErreur(err instanceof Error ? err.message : "Erreur réseau");
+    } finally {
+      setEnCours(false);
+    }
   }
 
-  function definirNouveau(e: React.FormEvent) {
+  async function definirNouveau(e: React.FormEvent) {
     e.preventDefault();
     if (nouveau.length < 8) {
       setErreur("Le mot de passe doit faire au moins 8 caractères.");
@@ -38,7 +82,24 @@ export default function MotDePasseOubliePage() {
       return;
     }
     setErreur(null);
-    setEtape("succes");
+    setEnCours(true);
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: tokenUrl, motDePasse: nouveau }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErreur(data.error ?? "Erreur");
+        return;
+      }
+      setEtape("succes");
+    } catch (err) {
+      setErreur(err instanceof Error ? err.message : "Erreur réseau");
+    } finally {
+      setEnCours(false);
+    }
   }
 
   return (
@@ -79,9 +140,10 @@ export default function MotDePasseOubliePage() {
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--brand-primary-dark)]"
+            disabled={enCours}
+            className="w-full rounded-lg bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--brand-primary-dark)] disabled:opacity-50"
           >
-            Envoyer le lien
+            {enCours ? "Envoi…" : "Envoyer le lien"}
           </button>
 
           <Link href="/login" className="block text-center text-xs text-[var(--brand-secondary)] hover:underline">
@@ -94,29 +156,19 @@ export default function MotDePasseOubliePage() {
         <div className="space-y-4">
           <div className="rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-primary)]/20 p-4 text-sm">
             <p className="font-semibold text-[var(--brand-primary-dark)] mb-1">
-              ✉️ E-mail envoyé
+              ✉️ Vérifiez vos e-mails
             </p>
             <p className="text-[var(--text-muted)] text-xs">
-              Si un compte est associé à <strong>{email}</strong>, vous recevrez
-              un lien de réinitialisation dans quelques instants. Pensez à
-              vérifier vos spams.
+              Si un compte est associé à <strong>{email}</strong>, un lien de
+              réinitialisation vient d&apos;être envoyé. Pensez à vérifier vos spams.
+              Le lien expire dans 1 heure.
             </p>
           </div>
 
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-            <strong>Démo :</strong> dans la vraie application, le lien
-            arriverait par e-mail. Ici, cliquez ci-dessous pour simuler
-            l&apos;ouverture du lien :
-          </div>
-
-          <button
-            onClick={() => setEtape("nouveau")}
-            className="w-full rounded-lg bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--brand-primary-dark)]"
+          <Link
+            href="/login"
+            className="block w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] py-3 text-center text-sm font-semibold text-[var(--brand-primary)] hover:bg-[var(--brand-soft)]"
           >
-            🔗 Ouvrir le lien (simulation)
-          </button>
-
-          <Link href="/login" className="block text-center text-xs text-[var(--brand-secondary)] hover:underline">
             Retour à la connexion
           </Link>
         </div>
@@ -125,7 +177,7 @@ export default function MotDePasseOubliePage() {
       {etape === "nouveau" ? (
         <form onSubmit={definirNouveau} className="space-y-4">
           <p className="text-sm text-[var(--text-muted)]">
-            Définissez votre nouveau mot de passe pour <strong>{email}</strong>.
+            Définissez votre nouveau mot de passe.
           </p>
 
           <div>
@@ -167,9 +219,10 @@ export default function MotDePasseOubliePage() {
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--brand-primary-dark)]"
+            disabled={enCours}
+            className="w-full rounded-lg bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--brand-primary-dark)] disabled:opacity-50"
           >
-            Enregistrer le mot de passe
+            {enCours ? "Enregistrement…" : "Enregistrer le mot de passe"}
           </button>
         </form>
       ) : null}

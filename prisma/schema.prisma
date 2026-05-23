@@ -48,6 +48,7 @@ model User {
   createdAt       DateTime @default(now())
   enfants         Enfant[]
   sessions        Session[]
+  resetTokens     PasswordResetToken[]
 }
 
 // Enfants rattachés à un parent.
@@ -66,6 +67,18 @@ model Enfant {
 // Expirent automatiquement après 30 jours.
 model Session {
   id        String   @id // identifiant aléatoire = valeur du cookie
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires   DateTime
+  createdAt DateTime @default(now())
+}
+
+// Jeton de réinitialisation de mot de passe.
+// Créé quand le parent clique "mot de passe oublié", expire après 1h,
+// supprimé après usage.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique // valeur dans l'URL du lien d'e-mail
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expires   DateTime

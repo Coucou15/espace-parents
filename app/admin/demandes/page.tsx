@@ -23,7 +23,11 @@ type Demande = {
 export default function DemandesPage() {
   const [demandes, setDemandes] = useState<Demande[]>([]);
   const [chargement, setChargement] = useState(true);
-  const [validee, setValidee] = useState<{ email: string; code: string } | null>(null);
+  const [validee, setValidee] = useState<{
+    email: string;
+    code: string;
+    emailEnvoye: boolean;
+  } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
 
   async function rafraichir() {
@@ -53,9 +57,13 @@ export default function DemandesPage() {
       setErreur(data.error ?? "Échec de la validation");
       return;
     }
-    setValidee({ email: data.user.email, code: data.codeAcces });
+    setValidee({
+      email: data.user.email,
+      code: data.codeAcces,
+      emailEnvoye: !!data.emailEnvoye,
+    });
     await rafraichir();
-    setTimeout(() => setValidee(null), 8000);
+    setTimeout(() => setValidee(null), 10000);
   }
 
   async function refuser(id: string) {
@@ -108,8 +116,9 @@ export default function DemandesPage() {
                 </strong>
               </p>
               <p className="text-xs mt-2">
-                Communiquez ce code au parent (par e-mail, SMS ou téléphone) — il en
-                aura besoin à sa première connexion.
+                {validee.emailEnvoye
+                  ? "✉️ Un e-mail avec le code a été envoyé automatiquement au parent."
+                  : "⚠ L'envoi d'e-mail n'est pas configuré. Communiquez le code manuellement (téléphone, SMS)."}
               </p>
             </div>
           ) : null}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
 import { isErrorResponse, requireAdmin } from "../../../../lib/authServer";
+import { envoyerEmail, templateCodeAcces } from "../../../../lib/email";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -63,9 +64,21 @@ export async function POST(_req: Request, ctx: RouteContext) {
     return u;
   });
 
+  // Envoi de l'e-mail avec le code d'accès. On capture l'erreur pour ne pas
+  // bloquer la validation côté admin si Resend est indisponible — l'admin
+  // verra le code à l'écran et pourra le communiquer manuellement.
+  const { sujet, html, texte } = templateCodeAcces(user.prenom, codeAcces);
+  const emailResult = await envoyerEmail({
+    to: user.email,
+    sujet,
+    html,
+    texte,
+  });
+
   return NextResponse.json({
     ok: true,
     user: { id: user.id, email: user.email },
     codeAcces,
+    emailEnvoye: emailResult.ok,
   });
 }
