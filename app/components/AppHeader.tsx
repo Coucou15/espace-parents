@@ -32,13 +32,13 @@ export function AppHeader({
   }
 
   return (
-    <header className="bg-[var(--brand-primary)] text-white px-4 py-3 shadow-sm">
+    <header className="bg-[var(--brand-primary)] text-white px-3 py-2 shadow-sm">
       <div className="flex items-center gap-2">
         {afficherRetour ? (
           <button
             onClick={retour}
             aria-label="Retour"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/90 transition hover:bg-white/10 active:bg-white/20"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/90 transition hover:bg-white/10 active:bg-white/20"
           >
             <svg
               viewBox="0 0 24 24"
@@ -54,18 +54,15 @@ export function AppHeader({
             </svg>
           </button>
         ) : (
-          <Logo size={36} />
+          <Logo size={30} />
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] opacity-80 truncate leading-tight">
-            Les Racines du Future
-          </p>
-          <h1 className="text-base font-semibold leading-tight truncate">{title}</h1>
+          <h1 className="text-[15px] font-semibold leading-tight truncate">{title}</h1>
           {subtitle ? (
             <p className="text-[10px] opacity-80 truncate leading-tight">{subtitle}</p>
           ) : null}
         </div>
-        {afficherRetour ? <Logo size={36} /> : null}
+        {afficherRetour ? <Logo size={30} /> : null}
       </div>
     </header>
   );
