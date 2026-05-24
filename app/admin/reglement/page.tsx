@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { AdminShell } from "../_components/AdminShell";
+import { telechargerDataUrl } from "../../lib/download";
 import { reglement as reglementInitial, type SectionReglement } from "../../lib/mockData";
 import { useSharedStore } from "../../lib/store";
 
@@ -382,13 +383,12 @@ function PdfSection({
             </div>
           </div>
           <div className="flex gap-1.5 shrink-0">
-            <a
-              href={pdf.base64}
-              download={pdf.nom}
+            <button
+              onClick={() => telechargerDataUrl(pdf.base64, pdf.nom)}
               className="rounded-md border border-[var(--border)] bg-white px-3 py-1.5 text-[11px] font-semibold hover:bg-[var(--surface-muted)]"
             >
               ⬇ Télécharger
-            </a>
+            </button>
             <button
               onClick={() => inputRef.current?.click()}
               className="rounded-md bg-[var(--brand-primary)] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[var(--brand-primary-dark)]"

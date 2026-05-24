@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AppHeader } from "../../components/AppHeader";
 import { AppShell } from "../../components/AppShell";
 import { AuthGuard } from "../../components/AuthGuard";
+import { ouvrirDansNouvelOnglet, telechargerDataUrl } from "../../lib/download";
 import { reglement as reglementInitial, type SectionReglement } from "../../lib/mockData";
 import { useSharedStore } from "../../lib/store";
 
@@ -55,13 +56,22 @@ export default function ReglementPage() {
               </div>
 
               {reglement.pdf ? (
-                <a
-                  href={reglement.pdf.base64}
-                  download={reglement.pdf.nom}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--brand-primary)] bg-[var(--surface)] py-2.5 text-sm font-semibold text-[var(--brand-primary)] hover:bg-[var(--brand-soft)]"
-                >
-                  ⬇ Télécharger le règlement (PDF)
-                </a>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <button
+                    onClick={() =>
+                      reglement.pdf && telechargerDataUrl(reglement.pdf.base64, reglement.pdf.nom)
+                    }
+                    className="flex items-center justify-center gap-2 rounded-lg bg-[var(--brand-primary)] py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[var(--brand-primary-dark)]"
+                  >
+                    ⬇ Télécharger
+                  </button>
+                  <button
+                    onClick={() => reglement.pdf && ouvrirDansNouvelOnglet(reglement.pdf.base64)}
+                    className="flex items-center justify-center gap-2 rounded-lg border border-[var(--brand-primary)] bg-[var(--surface)] py-2.5 text-sm font-semibold text-[var(--brand-primary)] hover:bg-[var(--brand-soft)]"
+                  >
+                    👁️ Ouvrir
+                  </button>
+                </div>
               ) : (
                 <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface-muted)]/40 py-2.5 text-xs text-[var(--text-muted)]">
                   Aucun document PDF disponible pour le moment.
