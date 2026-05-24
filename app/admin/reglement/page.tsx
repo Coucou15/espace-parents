@@ -5,6 +5,7 @@ import { AdminShell } from "../_components/AdminShell";
 import { telechargerDataUrl } from "../../lib/download";
 import { reglement as reglementInitial, type SectionReglement } from "../../lib/mockData";
 import { useSharedStore } from "../../lib/store";
+import { StatusIndicator, useDebouncedSave } from "../../lib/useDebouncedSave";
 
 type DocumentPdf = {
   nom: string; // nom de fichier original
@@ -29,10 +30,6 @@ export default function ReglementAdmin() {
     setTimeout(() => setInfo(null), 2500);
   }
 
-  function toucherMiseAJour() {
-    setReglement((r) => ({ ...r, miseAJour: new Date().toISOString().slice(0, 10) }));
-  }
-
   function ajouterSection() {
     setReglement((r) => ({
       ...r,
@@ -54,12 +51,6 @@ export default function ReglementAdmin() {
     notifier("Section supprimée.");
   }
 
-  function modifierSection(i: number, patch: Partial<SectionReglement>) {
-    setReglement((r) => ({
-      ...r,
-      sections: r.sections.map((s, idx) => (idx === i ? { ...s, ...patch } : s)),
-    }));
-  }
 
   function deplacer(i: number, direction: -1 | 1) {
     const j = i + direction;
@@ -212,9 +203,15 @@ export default function ReglementAdmin() {
                 <EditeurSection
                   key={editionIndex}
                   section={reglement.sections[editionIndex]}
-                  onChange={(patch) => {
-                    modifierSection(editionIndex, patch);
-                    toucherMiseAJour();
+                  saveSection={async (sectionMaj) => {
+                    const ok = await setReglement((r) => ({
+                      ...r,
+                      sections: r.sections.map((s, idx) =>
+                        idx === editionIndex ? sectionMaj : s
+                      ),
+                      miseAJour: new Date().toISOString().slice(0, 10),
+                    }));
+                    return ok;
                   }}
                   onDelete={() => supprimerSection(editionIndex)}
                   onMoveUp={editionIndex > 0 ? () => deplacer(editionIndex, -1) : undefined}
@@ -239,38 +236,56 @@ export default function ReglementAdmin() {
 
 function EditeurSection({
   section,
-  onChange,
+  saveSection,
   onDelete,
   onMoveUp,
   onMoveDown,
 }: {
   section: SectionReglement;
-  onChange: (patch: Partial<SectionReglement>) => void;
+  saveSection: (s: SectionReglement) => Promise<boolean>;
   onDelete: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
 }) {
+  // État local débouncé : on tape librement, ça sauvegarde 800ms après
+  // que l'on arrête de taper. L'utilisateur voit un indicateur en direct.
+  const [edit, modifier, statut] = useDebouncedSave<SectionReglement>(
+    section,
+    saveSection
+  );
+
+  function setTitre(t: string) {
+    modifier({ ...edit, titre: t });
+  }
+
   function modifierParagraphe(i: number, valeur: string) {
-    onChange({
-      paragraphes: section.paragraphes.map((p, idx) => (idx === i ? valeur : p)),
+    modifier({
+      ...edit,
+      paragraphes: edit.paragraphes.map((p, idx) => (idx === i ? valeur : p)),
     });
   }
 
   function ajouterParagraphe() {
-    onChange({ paragraphes: [...section.paragraphes, ""] });
+    modifier({ ...edit, paragraphes: [...edit.paragraphes, ""] });
   }
 
   function supprimerParagraphe(i: number) {
-    onChange({ paragraphes: section.paragraphes.filter((_, idx) => idx !== i) });
+    modifier({
+      ...edit,
+      paragraphes: edit.paragraphes.filter((_, idx) => idx !== i),
+    });
   }
 
   return (
     <article className="rounded-xl border border-[var(--border)] bg-white p-5 shadow-sm">
+      <div className="mb-2 flex items-center justify-end h-5">
+        <StatusIndicator statut={statut} />
+      </div>
       <div className="mb-3 flex items-start justify-between gap-2">
         <input
           type="text"
-          value={section.titre}
-          onChange={(e) => onChange({ titre: e.target.value })}
+          value={edit.titre}
+          onChange={(e) => setTitre(e.target.value)}
           placeholder="Titre de la section"
           className="flex-1 rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold focus:border-[var(--brand-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
         />
@@ -302,10 +317,10 @@ function EditeurSection({
       </div>
 
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-        Paragraphes ({section.paragraphes.length})
+        Paragraphes ({edit.paragraphes.length})
       </h3>
       <ul className="space-y-2">
-        {section.paragraphes.map((p, i) => (
+        {edit.paragraphes.map((p, i) => (
           <li key={i} className="flex items-start gap-2">
             <textarea
               value={p}
