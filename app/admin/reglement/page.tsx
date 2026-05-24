@@ -102,17 +102,27 @@ export default function ReglementAdmin() {
       notifier("⚠ Le fichier doit être un PDF.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      notifier("⚠ Fichier trop lourd (5 Mo maximum). Compressez-le d'abord.");
+    // Limite à 2 Mo : le base64 expand à ~33 %, donc 2 Mo -> ~2.7 Mo en payload,
+    // bien sous la limite Vercel de 4.5 Mo par requête.
+    if (file.size > 2 * 1024 * 1024) {
+      notifier(
+        "⚠ Fichier trop lourd (2 Mo maximum dans cette version). Compressez-le sur ilovepdf.com ou smallpdf.com."
+      );
       return;
     }
     const base64 = await lireFichier(file);
-    setReglement((r) => ({
+    const ok = await setReglement((r) => ({
       ...r,
       pdf: { nom: file.name, taille: file.size, base64 },
       miseAJour: new Date().toISOString().slice(0, 10),
     }));
-    notifier(`Document « ${file.name} » publié.`);
+    if (ok) {
+      notifier(`Document « ${file.name} » publié. Les parents y ont accès immédiatement.`);
+    } else {
+      notifier(
+        "⚠ Échec de l'enregistrement. Le fichier est probablement trop lourd. Essayez de le compresser."
+      );
+    }
   }
 
   function retirerPdf() {

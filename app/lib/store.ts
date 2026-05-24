@@ -20,7 +20,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export function useSharedStore<T>(
   name: string,
   fallback: T
-): [T, (value: T | ((prev: T) => T)) => void] {
+): [T, (value: T | ((prev: T) => T)) => Promise<boolean>] {
   const [value, setValue] = useState<T>(fallback);
   const valueRef = useRef<T>(fallback);
   valueRef.current = value;
@@ -55,22 +55,44 @@ export function useSharedStore<T>(
   }, [name]);
 
   const update = useCallback(
-    (v: T | ((prev: T) => T)) => {
+    async (v: T | ((prev: T) => T)): Promise<boolean> => {
       const next =
         typeof v === "function" ? (v as (prev: T) => T)(valueRef.current) : v;
+      const ancien = valueRef.current;
 
       // Optimistic update local
       setValue(next);
-      // Diffuser aux autres composants du même onglet
       window.dispatchEvent(new CustomEvent(`store:${name}`, { detail: { value: next } }));
-      // Persister en base
-      fetch(`/api/store/${encodeURIComponent(name)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ value: next }),
-      }).catch((err) => {
+
+      // Persister en base, en rollback si échec
+      try {
+        const res = await fetch(`/api/store/${encodeURIComponent(name)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ value: next }),
+        });
+        if (!res.ok) {
+          // Rollback côté UI
+          setValue(ancien);
+          window.dispatchEvent(
+            new CustomEvent(`store:${name}`, { detail: { value: ancien } })
+          );
+          const body = await res.text().catch(() => "");
+          console.error(
+            `Échec PUT /api/store/${name} : HTTP ${res.status}`,
+            body.slice(0, 200)
+          );
+          return false;
+        }
+        return true;
+      } catch (err) {
+        setValue(ancien);
+        window.dispatchEvent(
+          new CustomEvent(`store:${name}`, { detail: { value: ancien } })
+        );
         console.error(`Échec PUT /api/store/${name}`, err);
-      });
+        return false;
+      }
     },
     [name]
   );
