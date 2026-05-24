@@ -32,7 +32,7 @@ export function AppHeader({
   }
 
   return (
-    <header className="bg-[var(--brand-primary)] text-white px-3 py-2 shadow-sm">
+    <header className="bg-[var(--brand-primary)] text-white px-3 py-1.5 shadow-sm">
       <div className="flex items-center gap-2">
         {afficherRetour ? (
           <button

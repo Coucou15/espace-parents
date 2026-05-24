@@ -24,10 +24,7 @@ export default function AccueilPage() {
     <AuthGuard>
       {(compte) => (
         <>
-          <AppHeader
-            title={`Bonjour ${compte.prenom}`}
-            subtitle="Voici les dernières actualités de l'école"
-          />
+          <AppHeader title={`Bonjour ${compte.prenom}`} />
           <AppShell>
             <AmbianceBanner slot="accueil" />
             <div className="px-5 py-4">
