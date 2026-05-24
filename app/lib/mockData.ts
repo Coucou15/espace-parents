@@ -136,8 +136,8 @@ export const annonces: Annonce[] = [
 
 export const menuSemaineActuelle: RepasJour[] = [
   {
-    jour: "Lundi",
-    date: "2026-05-25",
+    jour: "Dimanche",
+    date: "2026-05-24",
     entree: "Salade de tomates et maïs",
     plat: "Poulet rôti",
     accompagnement: "Pommes de terre vapeur",
@@ -145,8 +145,8 @@ export const menuSemaineActuelle: RepasJour[] = [
     allergenes: ["lactose"],
   },
   {
-    jour: "Mardi",
-    date: "2026-05-26",
+    jour: "Lundi",
+    date: "2026-05-25",
     entree: "Carottes râpées",
     plat: "Poisson pané",
     accompagnement: "Riz pilaf",
@@ -154,8 +154,8 @@ export const menuSemaineActuelle: RepasJour[] = [
     allergenes: ["poisson", "gluten"],
   },
   {
-    jour: "Mercredi",
-    date: "2026-05-27",
+    jour: "Mardi",
+    date: "2026-05-26",
     entree: "Concombre à la vinaigrette",
     plat: "Boulettes de bœuf à la sauce tomate",
     accompagnement: "Coquillettes",
@@ -163,28 +163,29 @@ export const menuSemaineActuelle: RepasJour[] = [
     allergenes: ["gluten", "lactose"],
   },
   {
-    jour: "Jeudi",
-    date: "2026-05-28",
-    entree: "—",
-    plat: "Fermeture exceptionnelle",
-    accompagnement: "—",
-    dessert: "—",
-  },
-  {
-    jour: "Vendredi",
-    date: "2026-05-29",
+    jour: "Mercredi",
+    date: "2026-05-27",
     entree: "Salade verte",
     plat: "Couscous merguez",
     accompagnement: "Légumes du couscous",
     dessert: "Salade de fruits",
     allergenes: ["gluten"],
   },
+  {
+    jour: "Jeudi",
+    date: "2026-05-28",
+    entree: "Soupe de légumes",
+    plat: "Tajine de poulet",
+    accompagnement: "Semoule",
+    dessert: "Datte et lait",
+    allergenes: ["lactose"],
+  },
 ];
 
 export const menuSemaineSuivante: RepasJour[] = [
   {
-    jour: "Lundi",
-    date: "2026-06-01",
+    jour: "Dimanche",
+    date: "2026-05-31",
     entree: "Taboulé",
     plat: "Lasagnes",
     accompagnement: "Salade verte",
@@ -192,8 +193,8 @@ export const menuSemaineSuivante: RepasJour[] = [
     allergenes: ["gluten", "lactose"],
   },
   {
-    jour: "Mardi",
-    date: "2026-06-02",
+    jour: "Lundi",
+    date: "2026-06-01",
     entree: "Œuf mayonnaise",
     plat: "Escalope de dinde",
     accompagnement: "Purée de carottes",
@@ -201,17 +202,17 @@ export const menuSemaineSuivante: RepasJour[] = [
     allergenes: ["œuf", "lactose"],
   },
   {
-    jour: "Mercredi",
-    date: "2026-06-03",
+    jour: "Mardi",
+    date: "2026-06-02",
     entree: "Melon",
-    plat: "Tajine de poulet",
-    accompagnement: "Semoule",
+    plat: "Brochettes de poulet",
+    accompagnement: "Riz aux légumes",
     dessert: "Crème vanille",
-    allergenes: ["gluten", "lactose"],
+    allergenes: ["lactose"],
   },
   {
-    jour: "Jeudi",
-    date: "2026-06-04",
+    jour: "Mercredi",
+    date: "2026-06-03",
     entree: "Salade niçoise",
     plat: "Filet de cabillaud",
     accompagnement: "Haricots verts",
@@ -219,9 +220,9 @@ export const menuSemaineSuivante: RepasJour[] = [
     allergenes: ["poisson"],
   },
   {
-    jour: "Vendredi",
-    date: "2026-06-05",
-    entree: "Soupe de légumes",
+    jour: "Jeudi",
+    date: "2026-06-04",
+    entree: "Chorba",
     plat: "Pizza margherita",
     accompagnement: "Crudités",
     dessert: "Glace vanille",
@@ -312,7 +313,7 @@ export type Cours = {
 
 export type JourEdt = { jour: string; cours: Cours[] };
 
-export const JOURS_SEMAINE = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"] as const;
+export const JOURS_SEMAINE = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi"] as const;
 
 export type ClasseId = string; // forme: "palierId|niveauId|section" ex: "primaire|ce2|B"
 
@@ -335,7 +336,7 @@ function cours(id: string, matiere: string, enseignant: string, salle: string, d
 export const emploisDuTempsParClasse: Record<ClasseId, JourEdt[]> = {
   [classeId("primaire", "ce2", "B")]: [
     {
-      jour: "Lundi",
+      jour: "Dimanche",
       cours: [
         cours("c1", "Français", "Mme Karim", "12", "08:30", "10:00"),
         cours("c2", "Mathématiques", "M. Dubois", "12", "10:15", "11:45"),
@@ -345,7 +346,7 @@ export const emploisDuTempsParClasse: Record<ClasseId, JourEdt[]> = {
       ],
     },
     {
-      jour: "Mardi",
+      jour: "Lundi",
       cours: [
         cours("c6", "Mathématiques", "M. Dubois", "12", "08:30", "10:00"),
         cours("c7", "Sciences", "Mme Petit", "Labo", "10:15", "11:45"),
@@ -353,14 +354,14 @@ export const emploisDuTempsParClasse: Record<ClasseId, JourEdt[]> = {
       ],
     },
     {
-      jour: "Mercredi",
+      jour: "Mardi",
       cours: [
         cours("c9", "Français", "Mme Karim", "12", "08:30", "10:00"),
         cours("c10", "Musique", "M. Renaud", "Salle musique", "10:15", "11:45"),
       ],
     },
     {
-      jour: "Jeudi",
+      jour: "Mercredi",
       cours: [
         cours("c11", "Français", "Mme Karim", "12", "08:30", "10:00"),
         cours("c12", "Histoire-Géo", "M. Saadi", "14", "10:15", "11:45"),
@@ -368,7 +369,7 @@ export const emploisDuTempsParClasse: Record<ClasseId, JourEdt[]> = {
       ],
     },
     {
-      jour: "Vendredi",
+      jour: "Jeudi",
       cours: [
         cours("c14", "Anglais", "Ms. Taylor", "08", "08:30", "10:00"),
         cours("c15", "Sciences", "Mme Petit", "Labo", "10:15", "11:45"),
@@ -378,7 +379,7 @@ export const emploisDuTempsParClasse: Record<ClasseId, JourEdt[]> = {
   ],
   [classeId("maternelle", "gs", "A")]: [
     {
-      jour: "Lundi",
+      jour: "Dimanche",
       cours: [
         cours("g1", "Accueil et regroupement", "Mme Saadia", "Salle GS", "08:30", "09:15"),
         cours("g2", "Atelier lecture", "Mme Saadia", "Salle GS", "09:15", "10:30"),
@@ -387,7 +388,7 @@ export const emploisDuTempsParClasse: Record<ClasseId, JourEdt[]> = {
       ],
     },
     {
-      jour: "Mardi",
+      jour: "Lundi",
       cours: [
         cours("g5", "Accueil et regroupement", "Mme Saadia", "Salle GS", "08:30", "09:15"),
         cours("g6", "Atelier mathématiques", "Mme Saadia", "Salle GS", "09:15", "10:30"),
@@ -398,7 +399,7 @@ export const emploisDuTempsParClasse: Record<ClasseId, JourEdt[]> = {
   ],
   [classeId("college", "5e", "A")]: [
     {
-      jour: "Lundi",
+      jour: "Dimanche",
       cours: [
         cours("y1", "Mathématiques", "M. Bachir", "201", "08:00", "09:00"),
         cours("y2", "Français", "Mme Belaid", "203", "09:00", "10:00"),
@@ -410,7 +411,7 @@ export const emploisDuTempsParClasse: Record<ClasseId, JourEdt[]> = {
       ],
     },
     {
-      jour: "Mardi",
+      jour: "Lundi",
       cours: [
         cours("y8", "SVT", "Mme Petit", "Labo 1", "08:00", "09:00"),
         cours("y9", "Mathématiques", "M. Bachir", "201", "09:00", "10:00"),
