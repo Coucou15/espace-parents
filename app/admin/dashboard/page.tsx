@@ -1,20 +1,75 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { AdminShell } from "../_components/AdminShell";
-import {
-  comptesParentsInitiaux,
-  demandesInitiales,
-  messagesInitiaux,
-  statsUtilisation,
-} from "../_lib/adminMockData";
 import { annonces as annoncesInitiales, type Annonce } from "../../lib/mockData";
 import { useSharedStore } from "../../lib/store";
 
+type Stats = {
+  demandesEnAttente: number;
+  messagesNonTraites: number;
+  messagesTotal: number;
+  parentsTotal: number;
+  parentsActifs: number;
+  enseignants: number;
+  rdvsAVenir: number;
+  abonnementsPush: number;
+};
+
+const STATS_VIDES: Stats = {
+  demandesEnAttente: 0,
+  messagesNonTraites: 0,
+  messagesTotal: 0,
+  parentsTotal: 0,
+  parentsActifs: 0,
+  enseignants: 0,
+  rdvsAVenir: 0,
+  abonnementsPush: 0,
+};
+
 export default function AdminDashboard() {
   const [annonces] = useSharedStore<Annonce[]>("annonces", annoncesInitiales);
-  const messagesNonTraites = messagesInitiaux.filter((m) => !m.traite).length;
-  const parentsActifs = comptesParentsInitiaux.filter((p) => p.statut === "actif").length;
+  const [stats, setStats] = useState<Stats>(STATS_VIDES);
+  const [chargement, setChargement] = useState(true);
+  const [info, setInfo] = useState<string | null>(null);
+
+  async function rafraichir() {
+    try {
+      const res = await fetch("/api/stats", { cache: "no-store" });
+      if (res.ok) setStats(await res.json());
+    } finally {
+      setChargement(false);
+    }
+  }
+
+  useEffect(() => {
+    rafraichir();
+  }, []);
+
+  function notifier(msg: string) {
+    setInfo(msg);
+    setTimeout(() => setInfo(null), 3000);
+  }
+
+  async function reinitialiser(
+    cible: "messages-traites" | "rdvs-passes" | "messages-tous",
+    label: string
+  ) {
+    if (!confirm(`${label}\n\nCette action est définitive. Continuer ?`)) return;
+    const res = await fetch("/api/stats/reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cible }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      notifier(`${data.supprimes} entrée(s) supprimée(s)`);
+      await rafraichir();
+    } else {
+      notifier(data.error ?? "Erreur");
+    }
+  }
 
   return (
     <AdminShell>
@@ -25,28 +80,37 @@ export default function AdminDashboard() {
               Bonjour {session.prenom} 👋
             </h1>
             <p className="text-sm text-[var(--text-muted)]">
-              Voici un aperçu de l&apos;activité de l&apos;école.
+              Voici l&apos;activité réelle de l&apos;école.
             </p>
           </header>
+
+          {info ? (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
+              ✓ {info}
+            </div>
+          ) : null}
 
           <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <StatCard
               titre="Demandes en attente"
-              valeur={demandesInitiales.length}
-              urgent={demandesInitiales.length > 0}
+              valeur={stats.demandesEnAttente}
+              urgent={stats.demandesEnAttente > 0}
               href="/admin/demandes"
+              chargement={chargement}
             />
             <StatCard
               titre="Parents actifs"
-              valeur={parentsActifs}
-              sousLigne={`${comptesParentsInitiaux.length} comptes au total`}
+              valeur={stats.parentsActifs}
+              sousLigne={`${stats.parentsTotal} comptes au total`}
               href="/admin/parents"
+              chargement={chargement}
             />
             <StatCard
               titre="Messages non traités"
-              valeur={messagesNonTraites}
-              urgent={messagesNonTraites > 0}
+              valeur={stats.messagesNonTraites}
+              urgent={stats.messagesNonTraites > 0}
               href="/admin/messages"
+              chargement={chargement}
             />
             <StatCard
               titre="Annonces publiées"
@@ -58,24 +122,21 @@ export default function AdminDashboard() {
           <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="rounded-xl border border-[var(--border)] bg-white p-5 shadow-sm">
               <h2 className="mb-4 text-sm font-semibold text-[var(--brand-primary-dark)]">
-                Statistiques d&apos;utilisation
+                État du système
               </h2>
               <ul className="space-y-3 text-sm">
+                <StatLigne label="Enseignants" valeur={`${stats.enseignants}`} />
                 <StatLigne
-                  label="Connexions aujourd&apos;hui"
-                  valeur={`${statsUtilisation.connexionsAujourdHui}`}
+                  label="Rendez-vous à venir"
+                  valeur={`${stats.rdvsAVenir}`}
                 />
                 <StatLigne
-                  label="Connexions sur 7 jours"
-                  valeur={`${statsUtilisation.connexions7jours}`}
+                  label="Parents abonnés aux notifications push"
+                  valeur={`${stats.abonnementsPush} / ${stats.parentsTotal}`}
                 />
                 <StatLigne
-                  label="Module le plus visité"
-                  valeur={statsUtilisation.moduleLePlusVisite}
-                />
-                <StatLigne
-                  label="Comptes parents actifs"
-                  valeur={`${statsUtilisation.pourcentageActifs}%`}
+                  label="Messages reçus au total"
+                  valeur={`${stats.messagesTotal}`}
                 />
               </ul>
             </div>
@@ -108,6 +169,58 @@ export default function AdminDashboard() {
               </div>
             </div>
           </section>
+
+          <section className="rounded-xl border border-[var(--border)] bg-white p-5 shadow-sm">
+            <h2 className="mb-1 text-sm font-semibold text-[var(--brand-primary-dark)]">
+              ⚠ Nettoyage / réinitialisation
+            </h2>
+            <p className="mb-4 text-xs text-[var(--text-muted)]">
+              Supprime définitivement les anciennes données pour alléger les
+              listes. Les comptes parents, enseignants, créneaux, annonces, menus,
+              etc. ne sont jamais touchés.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() =>
+                  reinitialiser(
+                    "messages-traites",
+                    "Supprimer tous les messages déjà marqués comme traités ?"
+                  )
+                }
+                className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-xs font-semibold hover:bg-[var(--surface-muted)]"
+              >
+                🗑 Supprimer les messages traités
+              </button>
+              <button
+                onClick={() =>
+                  reinitialiser(
+                    "rdvs-passes",
+                    "Supprimer tous les rendez-vous dont la date est dépassée ?"
+                  )
+                }
+                className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-xs font-semibold hover:bg-[var(--surface-muted)]"
+              >
+                🗑 Supprimer les RDV passés
+              </button>
+              <button
+                onClick={() =>
+                  reinitialiser(
+                    "messages-tous",
+                    "⚠ Supprimer TOUS les messages, traités ou non ? Cette action est irréversible."
+                  )
+                }
+                className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100"
+              >
+                🗑 Vider tous les messages
+              </button>
+              <button
+                onClick={rafraichir}
+                className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-xs font-semibold hover:bg-[var(--surface-muted)]"
+              >
+                ↻ Rafraîchir les compteurs
+              </button>
+            </div>
+          </section>
         </div>
       )}
     </AdminShell>
@@ -120,12 +233,14 @@ function StatCard({
   sousLigne,
   urgent = false,
   href,
+  chargement = false,
 }: {
   titre: string;
   valeur: number;
   sousLigne?: string;
   urgent?: boolean;
   href: string;
+  chargement?: boolean;
 }) {
   return (
     <Link
@@ -142,7 +257,7 @@ function StatCard({
           urgent ? "text-amber-600" : "text-[var(--brand-primary-dark)]"
         }`}
       >
-        {valeur}
+        {chargement ? "…" : valeur}
       </span>
       {sousLigne ? (
         <span className="mt-1 text-[10px] text-[var(--text-muted)]">{sousLigne}</span>

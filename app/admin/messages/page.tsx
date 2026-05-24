@@ -1,15 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AdminShell } from "../_components/AdminShell";
-import { messagesInitiaux, type MessageRecu } from "../_lib/adminMockData";
+
+type Message = {
+  id: string;
+  parentPrenom: string;
+  parentNom: string;
+  email: string;
+  sujet: string;
+  message: string;
+  traite: boolean;
+  date: string;
+};
 
 export default function MessagesAdmin() {
-  const [messages, setMessages] = useState<MessageRecu[]>(messagesInitiaux);
-  const [selection, setSelection] = useState<MessageRecu | null>(
-    messagesInitiaux.find((m) => !m.traite) ?? messagesInitiaux[0] ?? null
-  );
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [chargement, setChargement] = useState(true);
+  const [selectionId, setSelectionId] = useState<string | null>(null);
   const [filtre, setFiltre] = useState<"tous" | "non-traites" | "traites">("non-traites");
+  const [erreur, setErreur] = useState<string | null>(null);
+
+  async function rafraichir() {
+    try {
+      const res = await fetch("/api/messages", { cache: "no-store" });
+      if (!res.ok) {
+        setErreur(`Erreur de chargement (HTTP ${res.status})`);
+        return;
+      }
+      const data = await res.json();
+      setMessages(data.messages ?? []);
+      setErreur(null);
+    } finally {
+      setChargement(false);
+    }
+  }
+
+  useEffect(() => {
+    rafraichir();
+  }, []);
 
   const liste = messages.filter((m) => {
     if (filtre === "non-traites") return !m.traite;
@@ -17,35 +46,56 @@ export default function MessagesAdmin() {
     return true;
   });
 
-  function basculerTraite(id: string) {
-    setMessages((curr) =>
-      curr.map((m) => (m.id === id ? { ...m, traite: !m.traite } : m))
-    );
-    if (selection?.id === id) {
-      setSelection((s) => (s ? { ...s, traite: !s.traite } : s));
-    }
+  const selection = messages.find((m) => m.id === selectionId) ?? liste[0] ?? null;
+
+  async function basculerTraite(m: Message) {
+    const res = await fetch(`/api/messages/${m.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ traite: !m.traite }),
+    });
+    if (res.ok) await rafraichir();
   }
 
-  function supprimer(id: string) {
+  async function supprimer(id: string) {
     if (!confirm("Supprimer ce message ?")) return;
-    setMessages((curr) => curr.filter((m) => m.id !== id));
-    if (selection?.id === id) setSelection(null);
+    const res = await fetch(`/api/messages/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      if (selectionId === id) setSelectionId(null);
+      await rafraichir();
+    }
   }
 
   return (
     <AdminShell>
       {() => (
         <div className="space-y-5">
-          <header>
-            <h1 className="text-xl font-bold text-[var(--brand-primary-dark)]">
-              Messages des parents
-            </h1>
-            <p className="text-sm text-[var(--text-muted)]">
-              {messages.filter((m) => !m.traite).length} message
-              {messages.filter((m) => !m.traite).length > 1 ? "s" : ""} non traité
-              {messages.filter((m) => !m.traite).length > 1 ? "s" : ""}.
-            </p>
+          <header className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-xl font-bold text-[var(--brand-primary-dark)]">
+                Messages des parents
+              </h1>
+              <p className="text-sm text-[var(--text-muted)]">
+                {chargement
+                  ? "Chargement…"
+                  : `${messages.filter((m) => !m.traite).length} non traité${
+                      messages.filter((m) => !m.traite).length > 1 ? "s" : ""
+                    } sur ${messages.length}`}
+              </p>
+            </div>
+            <button
+              onClick={rafraichir}
+              className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-xs font-semibold hover:bg-[var(--surface-muted)]"
+            >
+              ↻ Rafraîchir
+            </button>
           </header>
+
+          {erreur ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              ⚠ {erreur}
+            </div>
+          ) : null}
 
           <div className="flex gap-1.5 rounded-lg bg-[var(--surface-muted)] p-1 text-xs lg:w-fit">
             {(
@@ -79,7 +129,7 @@ export default function MessagesAdmin() {
                 liste.map((m) => (
                   <li key={m.id}>
                     <button
-                      onClick={() => setSelection(m)}
+                      onClick={() => setSelectionId(m.id)}
                       className={`flex w-full flex-col gap-1 rounded-lg border bg-white p-3 text-left text-sm transition ${
                         selection?.id === m.id
                           ? "border-[var(--brand-primary)] bg-[var(--brand-soft)]"
@@ -124,12 +174,18 @@ export default function MessagesAdmin() {
                         <a href={`mailto:${selection.email}`} className="underline">
                           {selection.email}
                         </a>{" "}
-                        · {new Date(selection.date).toLocaleDateString("fr-FR")}
+                        ·{" "}
+                        {new Date(selection.date).toLocaleString("fr-FR", {
+                          day: "2-digit",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </div>
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => basculerTraite(selection.id)}
+                        onClick={() => basculerTraite(selection)}
                         className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
                           selection.traite
                             ? "border border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"
@@ -152,20 +208,14 @@ export default function MessagesAdmin() {
                   </p>
 
                   <div className="border-t border-[var(--border)] pt-3">
-                    <label className="block text-xs font-medium mb-1">Réponse</label>
-                    <textarea
-                      rows={4}
-                      placeholder="Rédiger une réponse…"
-                      className="w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm focus:border-[var(--brand-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
-                    />
-                    <div className="mt-2 flex justify-end">
-                      <button
-                        type="button"
-                        className="rounded-lg bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[var(--brand-primary-dark)]"
-                      >
-                        Envoyer la réponse
-                      </button>
-                    </div>
+                    <a
+                      href={`mailto:${selection.email}?subject=Re: ${encodeURIComponent(
+                        selection.sujet
+                      )}`}
+                      className="inline-block rounded-lg bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[var(--brand-primary-dark)]"
+                    >
+                      ✉️ Répondre par e-mail
+                    </a>
                   </div>
                 </article>
               ) : (

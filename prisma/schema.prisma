@@ -112,6 +112,20 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 }
 
+// Messages envoyés par les parents via la page "Nous contacter".
+// L'administration les voit dans /admin/messages.
+model MessageContact {
+  id            String   @id @default(cuid())
+  parentId      String?  // si parent connecté ; sinon message anonyme (pas notre cas pour l'instant)
+  parentPrenom  String
+  parentNom     String
+  email         String
+  sujet         String
+  message       String
+  traite        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
 // Demande d'inscription en attente de validation par l'administration.
 // Le mot de passe est déjà haché à la soumission ; à la validation, on
 // transfère les données dans User et on supprime la demande.

@@ -12,7 +12,37 @@ type InfosEcole = typeof ecoleParDefaut;
 
 export default function ContactPage() {
   const [envoye, setEnvoye] = useState(false);
+  const [sujet, setSujet] = useState("");
+  const [message, setMessage] = useState("");
+  const [enCours, setEnCours] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
   const [ecole] = useSharedStore<InfosEcole>("ecole", ecoleParDefaut);
+
+  async function envoyerMessage(e: React.FormEvent) {
+    e.preventDefault();
+    setErreur(null);
+    if (!sujet.trim() || !message.trim()) return;
+    setEnCours(true);
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sujet, message }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErreur(data.error ?? "Erreur d'envoi");
+        return;
+      }
+      setSujet("");
+      setMessage("");
+      setEnvoye(true);
+    } catch (err) {
+      setErreur(err instanceof Error ? err.message : "Erreur réseau");
+    } finally {
+      setEnCours(false);
+    }
+  }
 
   return (
     <AuthGuard>
@@ -68,28 +98,40 @@ export default function ContactPage() {
                     répondra sous 48h ouvrées.
                   </div>
                 ) : (
-                  <form
-                    className="space-y-3"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      setEnvoye(true);
-                    }}
-                  >
-                    <Champ label="Sujet" placeholder="Absence, rendez-vous, question…" />
+                  <form className="space-y-3" onSubmit={envoyerMessage}>
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Sujet</label>
+                      <input
+                        type="text"
+                        required
+                        value={sujet}
+                        onChange={(e) => setSujet(e.target.value)}
+                        placeholder="Absence, rendez-vous, question…"
+                        className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--brand-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                      />
+                    </div>
                     <div>
                       <label className="block text-xs font-medium mb-1">Message</label>
                       <textarea
                         required
                         rows={4}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--brand-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
                         placeholder="Bonjour, …"
                       />
                     </div>
+                    {erreur ? (
+                      <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                        ⚠ {erreur}
+                      </p>
+                    ) : null}
                     <button
                       type="submit"
-                      className="w-full rounded-lg bg-[var(--brand-primary)] py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--brand-primary-dark)]"
+                      disabled={enCours}
+                      className="w-full rounded-lg bg-[var(--brand-primary)] py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--brand-primary-dark)] disabled:opacity-50"
                     >
-                      Envoyer
+                      {enCours ? "Envoi…" : "Envoyer"}
                     </button>
                   </form>
                 )}
@@ -137,16 +179,3 @@ function InfoRow({
   );
 }
 
-function Champ({ label, placeholder }: { label: string; placeholder?: string }) {
-  return (
-    <div>
-      <label className="block text-xs font-medium mb-1">{label}</label>
-      <input
-        type="text"
-        required
-        placeholder={placeholder}
-        className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--brand-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
-      />
-    </div>
-  );
-}
