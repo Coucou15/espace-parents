@@ -20,6 +20,39 @@ export default function MessagesAdmin() {
   const [selectionId, setSelectionId] = useState<string | null>(null);
   const [filtre, setFiltre] = useState<"tous" | "non-traites" | "traites">("non-traites");
   const [erreur, setErreur] = useState<string | null>(null);
+  const [reponse, setReponse] = useState("");
+  const [envoiEnCours, setEnvoiEnCours] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
+
+  function notifier(msg: string) {
+    setInfo(msg);
+    setTimeout(() => setInfo(null), 3000);
+  }
+
+  async function envoyerReponse(messageId: string) {
+    if (!reponse.trim()) return;
+    setEnvoiEnCours(true);
+    setErreur(null);
+    try {
+      const res = await fetch(`/api/messages/${messageId}/repondre`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reponse }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErreur(data.error ?? "Échec de l'envoi");
+        return;
+      }
+      setReponse("");
+      notifier("Réponse envoyée au parent par e-mail. Message marqué comme traité.");
+      await rafraichir();
+    } catch (err) {
+      setErreur(err instanceof Error ? err.message : "Erreur réseau");
+    } finally {
+      setEnvoiEnCours(false);
+    }
+  }
 
   async function rafraichir() {
     try {
@@ -39,6 +72,12 @@ export default function MessagesAdmin() {
   useEffect(() => {
     rafraichir();
   }, []);
+
+  // Reset la zone de réponse quand on change de message sélectionné
+  useEffect(() => {
+    setReponse("");
+    setErreur(null);
+  }, [selectionId]);
 
   const liste = messages.filter((m) => {
     if (filtre === "non-traites") return !m.traite;
@@ -203,19 +242,47 @@ export default function MessagesAdmin() {
                     </div>
                   </header>
 
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--foreground)]">
-                    {selection.message}
-                  </p>
+                  <div className="rounded-lg bg-[var(--surface-muted)]/60 p-3">
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--foreground)]">
+                      {selection.message}
+                    </p>
+                  </div>
 
-                  <div className="border-t border-[var(--border)] pt-3">
-                    <a
-                      href={`mailto:${selection.email}?subject=Re: ${encodeURIComponent(
-                        selection.sujet
-                      )}`}
-                      className="inline-block rounded-lg bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[var(--brand-primary-dark)]"
-                    >
-                      ✉️ Répondre par e-mail
-                    </a>
+                  <div className="border-t border-[var(--border)] pt-4">
+                    <h3 className="mb-2 text-sm font-semibold text-[var(--brand-primary-dark)]">
+                      ✉️ Répondre directement par e-mail
+                    </h3>
+                    <p className="mb-2 text-[11px] text-[var(--text-muted)]">
+                      Votre réponse sera envoyée à <strong>{selection.email}</strong>{" "}
+                      sans quitter l&apos;application. Le message sera automatiquement
+                      marqué comme traité.
+                    </p>
+                    <textarea
+                      value={reponse}
+                      onChange={(e) => setReponse(e.target.value)}
+                      rows={5}
+                      placeholder={`Bonjour ${selection.parentPrenom},\n\n…`}
+                      className="w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm focus:border-[var(--brand-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                    />
+                    {erreur ? (
+                      <p className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                        ⚠ {erreur}
+                      </p>
+                    ) : null}
+                    {info ? (
+                      <p className="mt-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+                        ✓ {info}
+                      </p>
+                    ) : null}
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        onClick={() => envoyerReponse(selection.id)}
+                        disabled={envoiEnCours || !reponse.trim()}
+                        className="rounded-lg bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[var(--brand-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {envoiEnCours ? "Envoi en cours…" : "Envoyer la réponse"}
+                      </button>
+                    </div>
                   </div>
                 </article>
               ) : (

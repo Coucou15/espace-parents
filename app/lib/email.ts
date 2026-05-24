@@ -224,6 +224,49 @@ Le rendez-vous prévu avec ${autrePartie} le ${formaterDateHeure(opts.dateHeure)
   return { sujet, html, texte };
 }
 
+export function templateReponseMessage(opts: {
+  prenomParent: string;
+  sujetOriginal: string;
+  messageOriginal: string;
+  reponse: string;
+  signataire: string;
+}): { sujet: string; html: string; texte: string } {
+  const sujet = `Re: ${opts.sujetOriginal}`;
+  const html = layout(
+    sujet,
+    `
+      <p style="margin:0 0 16px 0;font-size:15px;">Bonjour ${opts.prenomParent},</p>
+      <p style="margin:0 0 16px 0;font-size:14px;line-height:1.6;">
+        En réponse à votre message&nbsp;:
+      </p>
+      <div style="white-space:pre-wrap;font-size:14px;line-height:1.6;color:#1a2e22;">${opts.reponse.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] ?? c)}</div>
+      <hr style="border:0;border-top:1px solid #d8e3dc;margin:24px 0;">
+      <details style="font-size:12px;color:#5b6e64;">
+        <summary style="cursor:pointer;">Votre message d'origine</summary>
+        <div style="margin-top:8px;padding:12px;background:#f1f5f2;border-radius:6px;font-size:12px;">
+          <strong>Sujet :</strong> ${opts.sujetOriginal}<br><br>
+          <div style="white-space:pre-wrap;">${opts.messageOriginal.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] ?? c)}</div>
+        </div>
+      </details>
+      <p style="margin:24px 0 0 0;font-size:13px;color:#5b6e64;">Cordialement,<br><strong>${opts.signataire}</strong></p>
+    `
+  );
+  const texte = `Bonjour ${opts.prenomParent},
+
+En réponse à votre message :
+
+${opts.reponse}
+
+---
+Votre message d'origine (« ${opts.sujetOriginal} ») :
+${opts.messageOriginal}
+
+Cordialement,
+${opts.signataire}
+— École Les Racines du Future`;
+  return { sujet, html, texte };
+}
+
 export function templateResetPassword(prenom: string, lien: string): {
   sujet: string;
   html: string;
