@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AdminShell } from "../_components/AdminShell";
 import { reglement as reglementInitial, type SectionReglement } from "../../lib/mockData";
 import { useSharedStore } from "../../lib/store";
+
+type DocumentPdf = {
+  nom: string; // nom de fichier original
+  taille: number; // octets
+  base64: string; // data URL complet (data:application/pdf;base64,...)
+};
 
 type Reglement = {
   version: string;
   miseAJour: string;
   sections: SectionReglement[];
+  pdf?: DocumentPdf | null;
 };
 
 export default function ReglementAdmin() {
@@ -81,6 +88,45 @@ export default function ReglementAdmin() {
     notifier(`Nouvelle version ${next} publiée.`);
   }
 
+  function lireFichier(f: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(f);
+    });
+  }
+
+  async function uploaderPdf(file: File) {
+    if (file.type !== "application/pdf") {
+      notifier("⚠ Le fichier doit être un PDF.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      notifier("⚠ Fichier trop lourd (5 Mo maximum). Compressez-le d'abord.");
+      return;
+    }
+    const base64 = await lireFichier(file);
+    setReglement((r) => ({
+      ...r,
+      pdf: { nom: file.name, taille: file.size, base64 },
+      miseAJour: new Date().toISOString().slice(0, 10),
+    }));
+    notifier(`Document « ${file.name} » publié.`);
+  }
+
+  function retirerPdf() {
+    if (!confirm("Retirer le document PDF du règlement ?")) return;
+    setReglement((r) => ({ ...r, pdf: null }));
+    notifier("Document retiré.");
+  }
+
+  function tailleLisible(octets: number): string {
+    if (octets < 1024) return `${octets} o`;
+    if (octets < 1024 * 1024) return `${(octets / 1024).toFixed(1)} Ko`;
+    return `${(octets / 1024 / 1024).toFixed(2)} Mo`;
+  }
+
   return (
     <AdminShell>
       {() => (
@@ -116,6 +162,13 @@ export default function ReglementAdmin() {
               ✓ {info}
             </div>
           ) : null}
+
+          <PdfSection
+            pdf={reglement.pdf ?? null}
+            onUpload={uploaderPdf}
+            onRetirer={retirerPdf}
+            formatTaille={tailleLisible}
+          />
 
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-[260px_1fr]">
             <nav className="space-y-1 overflow-hidden rounded-xl border border-[var(--border)] bg-white p-2 shadow-sm">
@@ -268,5 +321,100 @@ function EditeurSection({
         + Ajouter un paragraphe
       </button>
     </article>
+  );
+}
+
+function PdfSection({
+  pdf,
+  onUpload,
+  onRetirer,
+  formatTaille,
+}: {
+  pdf: DocumentPdf | null;
+  onUpload: (file: File) => void;
+  onRetirer: () => void;
+  formatTaille: (octets: number) => string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <section className="rounded-xl border border-[var(--border)] bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-[var(--brand-primary-dark)]">
+            📄 Document PDF officiel
+          </h2>
+          <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+            Publiez le règlement intérieur signé en version PDF. Les parents pourront
+            le télécharger depuis leur application.
+          </p>
+        </div>
+        {pdf ? (
+          <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+            Publié
+          </span>
+        ) : (
+          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+            Non publié
+          </span>
+        )}
+      </div>
+
+      {pdf ? (
+        <div className="mt-3 flex flex-col gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-muted)]/40 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex items-center gap-3">
+            <span className="text-2xl" aria-hidden>📄</span>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium">{pdf.nom}</div>
+              <div className="text-[10px] text-[var(--text-muted)]">
+                {formatTaille(pdf.taille)}
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-1.5 shrink-0">
+            <a
+              href={pdf.base64}
+              download={pdf.nom}
+              className="rounded-md border border-[var(--border)] bg-white px-3 py-1.5 text-[11px] font-semibold hover:bg-[var(--surface-muted)]"
+            >
+              ⬇ Télécharger
+            </a>
+            <button
+              onClick={() => inputRef.current?.click()}
+              className="rounded-md bg-[var(--brand-primary)] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[var(--brand-primary-dark)]"
+            >
+              Remplacer
+            </button>
+            <button
+              onClick={onRetirer}
+              className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-600 hover:bg-red-100"
+            >
+              Retirer
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-3">
+          <button
+            onClick={() => inputRef.current?.click()}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[var(--border)] bg-[var(--surface-muted)]/40 py-4 text-sm font-semibold text-[var(--brand-primary-dark)] hover:border-[var(--brand-primary)]/40 hover:bg-[var(--brand-soft)]/40"
+          >
+            📤 Téléverser le document PDF (5 Mo max)
+          </button>
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="application/pdf"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onUpload(file);
+          e.target.value = "";
+        }}
+      />
+    </section>
   );
 }

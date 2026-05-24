@@ -11,6 +11,7 @@ type Reglement = {
   version: string;
   miseAJour: string;
   sections: SectionReglement[];
+  pdf?: { nom: string; taille: number; base64: string } | null;
 };
 
 export default function ReglementPage() {
@@ -53,9 +54,19 @@ export default function ReglementPage() {
                 </span>
               </div>
 
-              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--brand-primary)] bg-[var(--surface)] py-2.5 text-sm font-semibold text-[var(--brand-primary)] hover:bg-[var(--brand-soft)]">
-                ⬇ Télécharger le règlement (PDF)
-              </button>
+              {reglement.pdf ? (
+                <a
+                  href={reglement.pdf.base64}
+                  download={reglement.pdf.nom}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--brand-primary)] bg-[var(--surface)] py-2.5 text-sm font-semibold text-[var(--brand-primary)] hover:bg-[var(--brand-soft)]"
+                >
+                  ⬇ Télécharger le règlement (PDF)
+                </a>
+              ) : (
+                <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface-muted)]/40 py-2.5 text-xs text-[var(--text-muted)]">
+                  Aucun document PDF disponible pour le moment.
+                </div>
+              )}
 
               {sectionsFiltrees.length === 0 ? (
                 <p className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-4 text-center text-sm text-[var(--text-muted)]">
