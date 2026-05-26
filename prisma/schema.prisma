@@ -112,6 +112,23 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 }
 
+// Appréciations continues écrites par les enseignants au fil de l'année.
+// Visibles par les parents concernés. Sert de suivi quotidien / contrôle continu.
+model Appreciation {
+  id            String   @id @default(cuid())
+  enseignantId  String
+  enseignantNom String   // snapshot pour ne pas perdre le nom si l'enseignant est supprimé
+  enfantId      String
+  enfantPrenom  String   // snapshot
+  matiere       String?  // facultatif, déduit de l'enseignant si possible
+  type          String   // "positif" | "neutre" | "amelioration" | "comportement"
+  texte         String
+  createdAt     DateTime @default(now())
+
+  @@index([enfantId, createdAt])
+  @@index([enseignantId, createdAt])
+}
+
 // Messages envoyés par les parents via la page "Nous contacter".
 // L'administration les voit dans /admin/messages.
 model MessageContact {
