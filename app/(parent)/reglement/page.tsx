@@ -30,7 +30,7 @@ export default function ReglementPage() {
       .filter(
         (s) => s.titre.toLowerCase().includes(q) || s.paragraphes.length > 0
       );
-  }, [recherche]);
+  }, [recherche, reglement.sections]);
 
   return (
     <AuthGuard>
