@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/db";
 import { isErrorResponse, requireAdmin } from "../../../lib/authServer";
 
+// Force le rendu dynamique : on ne veut JAMAIS qu'une réponse soit
+// mise en cache, sinon les changements admin ne se voient pas côté parent.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type RouteContext = { params: Promise<{ name: string }> };
 
 /**
