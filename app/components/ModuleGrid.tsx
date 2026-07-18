@@ -5,6 +5,7 @@ const modules = [
   { href: "/emploi-du-temps", icone: "📅", label: "Emploi du temps" },
   { href: "/evaluations", icone: "📝", label: "Évaluations" },
   { href: "/appreciations", icone: "💬", label: "Suivi continu" },
+  { href: "/absences", icone: "🙋", label: "Absences" },
   { href: "/rendez-vous", icone: "🗓️", label: "Rendez-vous" },
   { href: "/galerie", icone: "📸", label: "Galerie" },
   { href: "/reglement", icone: "📘", label: "Règlement" },

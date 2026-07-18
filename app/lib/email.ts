@@ -267,6 +267,61 @@ ${opts.signataire}
   return { sujet, html, texte };
 }
 
+export function templateAbsence(opts: {
+  prenomParent: string;
+  prenomEleve: string;
+  date: string; // YYYY-MM-DD
+  periode: "journee" | "matin" | "apresmidi";
+  motif?: string | null;
+  signataire: string;
+}): { sujet: string; html: string; texte: string } {
+  const labelPeriode =
+    opts.periode === "matin"
+      ? "la matinée"
+      : opts.periode === "apresmidi"
+      ? "l'après-midi"
+      : "la journée";
+  const dateJolie = new Date(opts.date + "T12:00:00").toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const sujet = `Absence signalée : ${opts.prenomEleve} — ${dateJolie}`;
+  const html = layout(
+    sujet,
+    `
+      <p style="margin:0 0 16px 0;font-size:15px;">Bonjour ${opts.prenomParent},</p>
+      <p style="margin:0 0 16px 0;font-size:14px;line-height:1.6;">
+        L'école vous informe que <strong>${opts.prenomEleve}</strong> a été signalé·e
+        absent·e pour ${labelPeriode} du <strong>${dateJolie}</strong>.
+      </p>
+      ${opts.motif ? `
+      <div style="background:#fef3c7;border-left:4px solid #d97706;padding:12px 16px;margin:16px 0;border-radius:6px;">
+        <div style="font-size:11px;color:#78350f;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Motif indiqué</div>
+        <div style="font-size:14px;color:#78350f;">${opts.motif.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] ?? c)}</div>
+      </div>` : ""}
+      <p style="margin:16px 0;font-size:13px;line-height:1.6;">
+        <strong>Si cette absence n'était pas justifiée</strong>, merci de contacter
+        le secrétariat au plus vite (téléphone ou depuis la page « Nous contacter »
+        de l'application) et de fournir un justificatif au retour de votre enfant.
+      </p>
+      <p style="margin:24px 0 0 0;font-size:12px;color:#5b6e64;">
+        Signalé par ${opts.signataire}.
+      </p>
+    `
+  );
+  const texte = `Bonjour ${opts.prenomParent},
+
+L'école vous informe que ${opts.prenomEleve} a été signalé·e absent·e pour ${labelPeriode} du ${dateJolie}.
+${opts.motif ? `\nMotif : ${opts.motif}\n` : ""}
+Si cette absence n'était pas justifiée, merci de contacter le secrétariat au plus vite.
+
+Signalé par ${opts.signataire}.
+— École Les Racines du Future`;
+  return { sujet, html, texte };
+}
+
 export function templateResetPassword(prenom: string, lien: string): {
   sujet: string;
   html: string;

@@ -25,6 +25,7 @@ const navItems = [
   { href: "/admin/rendez-vous", label: "Rendez-vous", icone: "🗓️" },
   { href: "/admin/annonces", label: "Annonces", icone: "📢" },
   { href: "/admin/emploi-du-temps", label: "Emplois du temps", icone: "📅" },
+  { href: "/admin/absences", label: "Feuille d'appel", icone: "🙋" },
   { href: "/admin/evaluations", label: "Évaluations", icone: "📝" },
   { href: "/admin/appreciations", label: "Suivi continu", icone: "💬" },
   { href: "/admin/menu", label: "Menu cantine", icone: "🍽️" },

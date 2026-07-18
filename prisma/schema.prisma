@@ -112,6 +112,26 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 }
 
+// Absences signalées par l'administration ou l'enseignant.
+// Une seule ligne par élève et par date. Envoi automatique d'e-mail
+// + notification push au parent à la création.
+model Absence {
+  id             String   @id @default(cuid())
+  enfantId       String
+  enfantPrenom   String   // snapshot
+  enfantNom      String   // snapshot
+  date           String   // format YYYY-MM-DD (jour scolaire)
+  periode        String   // "journee" | "matin" | "apresmidi"
+  motif          String?
+  justifiee      Boolean  @default(false)
+  signaleParId   String
+  signaleParNom  String
+  createdAt      DateTime @default(now())
+
+  @@unique([enfantId, date, periode])
+  @@index([enfantId, date])
+}
+
 // Appréciations continues écrites par les enseignants au fil de l'année.
 // Visibles par les parents concernés. Sert de suivi quotidien / contrôle continu.
 model Appreciation {
